@@ -92,8 +92,8 @@ def get_ecosystem_keyboard() -> InlineKeyboardMarkup:
     """Клавиатура экосистемы: пока 1 торговый бот + назад в меню."""
     trading_bot_link = _normalize_tg_link(settings.SIGNAL_BOT_LINK or "https://t.me/signalpriv_bot")
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🤖 Trading bot", url=trading_bot_link)],
-        [InlineKeyboardButton(text="⬅️ Back to main menu", callback_data="back_main_menu")],
+        [InlineKeyboardButton(text="Trading bot", url=trading_bot_link, style="danger", icon_custom_emoji_id="5300964257242829093")],
+        [InlineKeyboardButton(text="Back to main menu", callback_data="back_main_menu", style="danger", icon_custom_emoji_id="5465368548702446780")],
     ])
 
 MAIN_MENU_TEXT = """
@@ -191,9 +191,13 @@ async def main_menu(message: Message):
 async def cb_eco_system(callback: CallbackQuery):
     """Экосистема (Trading cabinet): текст + кнопки с торговыми ботами."""
     await callback.answer()
+    # Удаляем предыдущее сообщение "Main menu" с инлайн-кнопками
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
     text = (
-        "🛠 <b>Trading cabinet ecosystem</b>\n\n"
-        "Choose a trading bot below."
+        "<tg-emoji emoji-id=\"5359594091296335780\">🤖</tg-emoji><b> Trading cabinet ecosystem</b>\n\n"
     )
     await callback.message.answer(text, reply_markup=get_ecosystem_keyboard(), parse_mode="HTML")
 
@@ -201,6 +205,11 @@ async def cb_eco_system(callback: CallbackQuery):
 @router.callback_query(F.data == "back_main_menu")
 async def cb_back_main_menu(callback: CallbackQuery):
     await callback.answer()
+    # Удаляем сообщение экосистемы перед возвратом в главное меню
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
     await callback.message.answer(MAIN_MENU_TEXT, reply_markup=get_main_menu_links_keyboard())
 
 
