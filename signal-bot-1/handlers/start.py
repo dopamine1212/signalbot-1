@@ -97,8 +97,7 @@ def get_ecosystem_keyboard() -> InlineKeyboardMarkup:
     ])
 
 MAIN_MENU_TEXT = """
-📋 *Main menu*
-
+📋 Main menu
 """
 
 
@@ -176,15 +175,15 @@ async def cb_check_channel_subscription(callback: CallbackQuery):
     welcome_text = (
         f"👋 Hello, {callback.from_user.first_name}!\n\n"
         "Welcome to the futures signals bot.\n\n"
-        "Tap *Main menu* to open links."
+        "Tap <b>Main menu</b> to open links."
     )
-    await callback.message.answer(welcome_text, reply_markup=get_main_keyboard())
+    await callback.message.answer(welcome_text, reply_markup=get_main_keyboard(), parse_mode="HTML")
 
 
 @router.message(lambda message: message.text == "Main menu")
 async def main_menu(message: Message):
     """Главное меню: текст и инлайн-кнопки со ссылками (Trading cabinet, Why us, Reviews, Support)"""
-    await message.answer(MAIN_MENU_TEXT, reply_markup=get_main_menu_links_keyboard())
+    await message.answer(MAIN_MENU_TEXT, reply_markup=get_main_menu_links_keyboard(), parse_mode="HTML")
 
 
 @router.callback_query(F.data == "eco_system")
@@ -210,7 +209,7 @@ async def cb_back_main_menu(callback: CallbackQuery):
         await callback.message.delete()
     except Exception:
         pass
-    await callback.message.answer(MAIN_MENU_TEXT, reply_markup=get_main_menu_links_keyboard())
+    await callback.message.answer(MAIN_MENU_TEXT, reply_markup=get_main_menu_links_keyboard(), parse_mode="HTML")
 
 
 @router.message(lambda message: message.text == "choose a subscription")
