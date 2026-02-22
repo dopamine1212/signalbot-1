@@ -1,0 +1,12 @@
+# Telegram Bot
+aiogram==3.3.0
+
+# Database: SQLite (встроен) или Supabase (PostgreSQL)
+psycopg2-binary>=2.9.0
+
+# Crypto Payments
+requests==2.31.0
+
+# Environment
+python-dotenv==1.0.0
+

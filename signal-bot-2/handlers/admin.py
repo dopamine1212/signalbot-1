@@ -1,0 +1,519 @@
+"""
+Bot 2 admin: send signals and broadcast only. Shared Supabase DB with main bot.
+"""
+import json
+import logging
+import asyncio
+from aiogram import Router, F
+from aiogram.types import Message, InputMediaPhoto, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from aiogram.filters import Command, StateFilter
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.fsm.context import FSMContext
+from database import get_db
+from services import AdminService
+
+logger = logging.getLogger(__name__)
+
+router = Router()
+
+
+def build_signal_body(signal_text: str) -> str:
+    """Return only the signal text, no header."""
+    return (signal_text or "").strip()
+
+
+class SignalStates(StatesGroup):
+    waiting_for_photos = State()
+    waiting_for_text = State()
+    waiting_for_confirm = State()
+
+
+class BroadcastStates(StatesGroup):
+    waiting_for_text = State()
+    waiting_for_link = State()
+
+
+media_groups_storage = {}
+
+
+def _summarize_groups_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="✅ Group 1", callback_data="summarize_group_1"),
+            InlineKeyboardButton(text="✅ Group 2", callback_data="summarize_group_2"),
+        ],
+    ])
+
+
+@router.message(Command("admin"))
+@router.message(Command("admine"))
+async def cmd_admin(message: Message):
+    """Admin command list. No response for non-admins."""
+    if not AdminService.is_admin(message.from_user.id):
+        return
+    admin_commands = """
+👑 *Administrator (Bot 2):*
+
+📢 *Signals & messages:*
+`/send_signal` - Send signal (1-2 photos + text, Group 1 or 2)
+`/send_message` - Send a simple message to all users
+`/summarize` - Подвести итоги по группе
+
+Send /cancel to cancel any operation.
+"""
+    admin_panel_kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="📋 Подвести итоги", callback_data="open_summarize")]
+    ])
+    await message.answer(admin_commands, reply_markup=admin_panel_kb)
+
+
+@router.message(Command("summarize"))
+async def cmd_summarize(message: Message):
+    """Подвести итоги: выбор группы, у которой прогноз зашёл."""
+    if not AdminService.is_admin(message.from_user.id):
+        return
+    await message.answer(
+        "📋 Подвести итоги\n\nВыберите группу, у которой прогноз сработал:",
+        reply_markup=_summarize_groups_keyboard(),
+        parse_mode=None,
+    )
+
+
+@router.callback_query(F.data == "open_summarize")
+async def cb_open_summarize(callback: CallbackQuery):
+    if not AdminService.is_admin(callback.from_user.id):
+        return
+    await callback.answer()
+    await callback.message.answer(
+        "📋 Подвести итоги\n\nВыберите группу, у которой прогноз сработал:",
+        reply_markup=_summarize_groups_keyboard(),
+        parse_mode=None,
+    )
+
+
+@router.callback_query(F.data.startswith("summarize_group_"))
+async def cb_summarize_group(callback: CallbackQuery):
+    """Показать список юзеров выбранной группы (прогноз зашёл)."""
+    if not AdminService.is_admin(callback.from_user.id):
+        return
+    try:
+        group = int(callback.data.replace("summarize_group_", ""))
+    except ValueError:
+        group = 1
+    if group not in (1, 2):
+        group = 1
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        SELECT telegram_id, username, first_name, last_name
+        FROM users
+        WHERE split_group = ? AND is_premium = 1 AND is_active = 1
+        ORDER BY id
+        """,
+        (group,),
+    )
+    rows = cursor.fetchall()
+
+    if not rows:
+        text = f"📋 Группа {group} — прогноз зашёл\n\nСписок пуст (нет активных премиум-пользователей в этой группе)."
+        try:
+            await callback.message.edit_text(text, parse_mode=None)
+        except Exception:
+            await callback.message.answer(text, parse_mode=None)
+        await callback.answer()
+        return
+
+    header = f"📋 Группа {group} — прогноз зашёл\n\nВсего: {len(rows)} чел.\n"
+    chunks = [header]
+    for i, row in enumerate(rows, 1):
+        uid = row[0]
+        username = row[1] or ""
+        first_name = (row[2] or "").strip()
+        last_name = (row[3] or "").strip()
+        name = f"{first_name} {last_name}".strip() or "—"
+        uname = f"@{username}" if username else ""
+        line = f"{i}. ID: {uid} | {uname} | {name}"
+        if len(chunks[-1]) + len(line) + 1 > 4000:
+            chunks.append(line)
+        else:
+            chunks[-1] += "\n" + line
+
+    for j, chunk in enumerate(chunks):
+        try:
+            if j == 0:
+                await callback.message.edit_text(chunk, parse_mode=None)
+            else:
+                await callback.message.answer(chunk, parse_mode=None)
+        except Exception:
+            await callback.message.answer(chunk, parse_mode=None)
+    await callback.answer()
+
+
+@router.message(Command("send_message"))
+async def cmd_send_message(message: Message, state: FSMContext):
+    """Broadcast a message to all users (admin only)."""
+    if not AdminService.is_admin(message.from_user.id):
+        return
+    await message.answer(
+        "📝 *Send message*\n\n"
+        "Send the text of the message to be sent to all users.\n\n"
+        "Send /cancel to cancel."
+    )
+    await state.set_state(BroadcastStates.waiting_for_text)
+
+
+@router.message(StateFilter(BroadcastStates.waiting_for_text), F.text)
+async def process_broadcast_text(message: Message, state: FSMContext):
+    if message.text and message.text.strip() == "/cancel":
+        await state.clear()
+        await message.answer("❌ Cancelled")
+        return
+    await state.update_data(broadcast_text=message.text)
+    await state.set_state(BroadcastStates.waiting_for_link)
+    await message.answer(
+        "📎 *Add link?*\n\n"
+        "Send a URL (e.g. https://t.me/...) to add a button under the message.\n"
+        "Or send /skip to send the message without a button."
+    )
+
+
+def _is_url(s: str) -> bool:
+    s = (s or "").strip()
+    return s.startswith("http://") or s.startswith("https://")
+
+
+@router.message(StateFilter(BroadcastStates.waiting_for_link), F.text)
+async def process_broadcast_link(message: Message, state: FSMContext):
+    if message.text and message.text.strip() == "/cancel":
+        await state.clear()
+        await message.answer("❌ Cancelled")
+        return
+    data = await state.get_data()
+    text = data.get("broadcast_text", "")
+    reply_markup = None
+    if message.text and message.text.strip().lower() != "/skip":
+        raw = message.text.strip()
+        if _is_url(raw):
+            reply_markup = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="🔗 Open link", url=raw)]
+            ])
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT telegram_id FROM users")
+    users = [row[0] for row in cursor.fetchall()]
+    sent = 0
+    failed = 0
+    for uid in users:
+        try:
+            await message.bot.send_message(
+                chat_id=uid,
+                text=text,
+                parse_mode=None,
+                reply_markup=reply_markup,
+            )
+            sent += 1
+        except Exception as e:
+            failed += 1
+            logger.debug(f"Broadcast to {uid}: {e}")
+    await state.clear()
+    await message.answer(f"✅ Message sent: {sent} delivered, {failed} errors.")
+
+
+@router.message(Command("send_signal"))
+async def cmd_send_signal(message: Message, state: FSMContext):
+    if not AdminService.is_admin(message.from_user.id):
+        return
+    await message.answer(
+        "📸 *Send Signal*\n\n"
+        "Send 1 or 2 photos for the signal.\n"
+        "After sending photos, write the signal text.\n\n"
+        "Send /cancel to cancel"
+    )
+    await state.set_state(SignalStates.waiting_for_photos)
+
+
+@router.message(StateFilter(SignalStates.waiting_for_photos), F.photo)
+async def process_signal_photos(message: Message, state: FSMContext):
+    user_id = message.from_user.id
+    if message.media_group_id:
+        if message.media_group_id not in media_groups_storage:
+            media_groups_storage[message.media_group_id] = {
+                'user_id': user_id,
+                'photo_ids': [],
+                'state': state,
+                'processed': False
+            }
+        photo_id = message.photo[-1].file_id
+        if photo_id not in media_groups_storage[message.media_group_id]['photo_ids']:
+            media_groups_storage[message.media_group_id]['photo_ids'].append(photo_id)
+        photo_ids = media_groups_storage[message.media_group_id]['photo_ids'][:2]
+        media_groups_storage[message.media_group_id]['photo_ids'] = photo_ids
+        await asyncio.sleep(1.0)
+        group_data = media_groups_storage.get(message.media_group_id)
+        if group_data and not group_data['processed']:
+            await state.update_data(photo_ids=photo_ids)
+            media_groups_storage[message.media_group_id]['processed'] = True
+            if len(photo_ids) > 2:
+                await message.answer("⚠️ Only 2 photos accepted (maximum)")
+            await message.answer(
+                f"✅ Photos received ({len(photo_ids)} pcs.)!\n\n"
+                "Now send the signal text."
+            )
+            await state.set_state(SignalStates.waiting_for_text)
+            await asyncio.sleep(0.5)
+            if message.media_group_id in media_groups_storage:
+                del media_groups_storage[message.media_group_id]
+        return
+
+    data = await state.get_data()
+    photo_ids = data.get("photo_ids", [])
+    photo_id = message.photo[-1].file_id
+    if photo_id not in photo_ids:
+        photo_ids.append(photo_id)
+    if len(photo_ids) > 2:
+        photo_ids = photo_ids[:2]
+        await message.answer("⚠️ Only 2 photos accepted (maximum)")
+    await state.update_data(photo_ids=photo_ids)
+    if len(photo_ids) >= 2:
+        await message.answer(
+            "✅ Photos received!\n\n"
+            "Now send the signal text."
+        )
+        await state.set_state(SignalStates.waiting_for_text)
+    else:
+        await message.answer(
+            f"✅ Photo {len(photo_ids)}/2 received!\n\n"
+            "Send another photo or send the signal text."
+        )
+        await state.set_state(SignalStates.waiting_for_text)
+
+
+@router.message(StateFilter(SignalStates.waiting_for_photos), F.text)
+async def process_signal_text_after_photo(message: Message, state: FSMContext):
+    if message.text and message.text.strip() == "/cancel":
+        await state.clear()
+        await message.answer("❌ Signal sending cancelled")
+        return
+    data = await state.get_data()
+    if not data.get("photo_ids"):
+        await message.answer("⚠️ Send photos first!")
+        return
+    await state.update_data(text=message.text)
+    await show_signal_preview(message, state)
+
+
+@router.message(StateFilter(SignalStates.waiting_for_text), F.text)
+async def process_signal_text(message: Message, state: FSMContext):
+    if message.text and message.text.strip() == "/cancel":
+        await state.clear()
+        await message.answer("❌ Signal sending cancelled")
+        return
+    await state.update_data(text=message.text)
+    await show_signal_preview(message, state)
+
+
+@router.message(StateFilter(SignalStates.waiting_for_text), F.photo)
+async def process_additional_photo(message: Message, state: FSMContext):
+    data = await state.get_data()
+    photo_ids = data.get("photo_ids", [])
+    if len(photo_ids) >= 2:
+        await message.answer("⚠️ Maximum 2 photos. Send the signal text.")
+        return
+    photo_ids.append(message.photo[-1].file_id)
+    await state.update_data(photo_ids=photo_ids)
+    await message.answer(
+        f"✅ Photo {len(photo_ids)}/2 received!\n\n"
+        "Now send the signal text."
+    )
+
+
+async def show_signal_preview(message: Message, state: FSMContext):
+    data = await state.get_data()
+    photo_ids = data.get("photo_ids", [])
+    text = data.get("text", "")
+    if not photo_ids and not text:
+        await message.answer("❌ Error: no data to send")
+        await state.clear()
+        return
+    preview_text = "📋 Signal Preview:\n\n"
+    if text:
+        preview_text += f"Text:\n{text}\n\n"
+    if photo_ids:
+        preview_text += f"Photos: {len(photo_ids)}\n\n"
+    preview_text += "Choose audience (Group 1 or Group 2):"
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="❌ Cancel", callback_data="signal_cancel"),
+            InlineKeyboardButton(text="✏️ Edit", callback_data="signal_edit")
+        ],
+        [
+            InlineKeyboardButton(text="✅ Group 1", callback_data="signal_send_1"),
+            InlineKeyboardButton(text="✅ Group 2", callback_data="signal_send_2")
+        ]
+    ])
+    if photo_ids:
+        if len(photo_ids) == 1:
+            await message.bot.send_photo(
+                chat_id=message.chat.id,
+                photo=photo_ids[0],
+                caption=preview_text,
+                reply_markup=keyboard,
+                parse_mode=None
+            )
+        else:
+            media = [
+                InputMediaPhoto(media=photo_ids[0]),
+                InputMediaPhoto(media=photo_ids[1])
+            ]
+            await message.bot.send_media_group(chat_id=message.chat.id, media=media)
+            await message.answer(preview_text, reply_markup=keyboard, parse_mode=None)
+    else:
+        await message.answer(preview_text, reply_markup=keyboard, parse_mode=None)
+    await state.set_state(SignalStates.waiting_for_confirm)
+
+
+@router.callback_query(F.data == "signal_cancel", StateFilter(SignalStates.waiting_for_confirm))
+async def signal_cancel(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
+    try:
+        await callback.message.edit_text("❌ Signal sending cancelled")
+    except Exception:
+        await callback.message.answer("❌ Signal sending cancelled")
+    await callback.answer()
+
+
+@router.callback_query(F.data == "signal_edit", StateFilter(SignalStates.waiting_for_confirm))
+async def signal_edit(callback: CallbackQuery, state: FSMContext):
+    try:
+        await callback.message.edit_text(
+            "✏️ *Editing Signal*\n\n"
+            "Send new signal text or send /cancel to cancel."
+        )
+    except Exception:
+        await callback.message.answer(
+            "✏️ *Editing Signal*\n\n"
+            "Send new signal text or send /cancel to cancel."
+        )
+    await state.set_state(SignalStates.waiting_for_text)
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("signal_send_"), StateFilter(SignalStates.waiting_for_confirm))
+async def signal_send(callback: CallbackQuery, state: FSMContext):
+    try:
+        await callback.message.edit_text("⏳ Sending signal...")
+    except Exception:
+        await callback.message.answer("⏳ Sending signal...")
+    await callback.answer()
+    suffix = callback.data.replace("signal_send_", "")
+    try:
+        target_group = int(suffix)
+    except ValueError:
+        target_group = 1
+    if target_group not in (1, 2):
+        target_group = 1
+    data = await state.get_data()
+    photo_ids = data.get("photo_ids", [])
+    text = data.get("text", "")
+    await process_final_signal(callback.message, state, photo_ids, text, target_group=target_group)
+
+
+async def process_final_signal(message: Message, state: FSMContext, photo_ids=None, text=None, target_group=1):
+    """Send signal. target_group: 1 or 2. Admins receive all signals."""
+    if photo_ids is None or text is None:
+        data = await state.get_data()
+        photo_ids = photo_ids or data.get("photo_ids", [])
+        text = text or data.get("text", "")
+    if not photo_ids and not text:
+        await message.answer("❌ Error: no data to send")
+        await state.clear()
+        return
+    if target_group not in (1, 2):
+        target_group = 1
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        INSERT INTO signals (text, photo_ids, created_by, split_group)
+        VALUES (?, ?, ?, ?)
+        """,
+        (text, json.dumps(photo_ids), message.from_user.id, target_group),
+    )
+    conn.commit()
+    signal_id = cursor.lastrowid
+
+    cursor.execute(
+        "SELECT telegram_id FROM users WHERE is_premium = 1 AND is_active = 1 AND split_group = ?",
+        (target_group,),
+    )
+    premium_users = [int(row[0]) for row in cursor.fetchall()]
+    cursor.execute("SELECT telegram_id FROM admins")
+    admin_ids = [int(row[0]) for row in cursor.fetchall()]
+    recipients = set(premium_users) | set(admin_ids)
+
+    sent_count = 0
+    failed_count = 0
+    body = build_signal_body(text)
+
+    for user_telegram_id in recipients:
+        try:
+            msg_to_pin = None
+            if photo_ids:
+                if len(photo_ids) == 1:
+                    msg_to_pin = await message.bot.send_photo(
+                        chat_id=user_telegram_id,
+                        photo=photo_ids[0],
+                        caption=body,
+                        parse_mode=None
+                    )
+                else:
+                    media = [
+                        InputMediaPhoto(media=photo_ids[0], caption=body),
+                        InputMediaPhoto(media=photo_ids[1])
+                    ]
+                    sent_messages = await message.bot.send_media_group(
+                        chat_id=user_telegram_id,
+                        media=media
+                    )
+                    msg_to_pin = sent_messages[0] if sent_messages else None
+            else:
+                msg_to_pin = await message.bot.send_message(
+                    chat_id=user_telegram_id,
+                    text=body,
+                    parse_mode=None
+                )
+            if msg_to_pin:
+                try:
+                    await message.bot.pin_chat_message(
+                        chat_id=user_telegram_id,
+                        message_id=msg_to_pin.message_id,
+                        disable_notification=True
+                    )
+                except Exception as pin_err:
+                    logger.warning(f"Could not pin message for user {user_telegram_id}: {pin_err}")
+            sent_count += 1
+        except Exception as e:
+            failed_count += 1
+            logger.error(f"Error sending signal to user {user_telegram_id}: {e}")
+
+    await message.answer(
+        f"✅ *Signal sent!*\n\n"
+        f"📊 Statistics:\n"
+        f"   • Sent: {sent_count}\n"
+        f"   • Errors: {failed_count}\n"
+        f"   • Signal ID: {signal_id}"
+    )
+    await state.clear()
+
+
+@router.message(Command("cancel"))
+async def cmd_cancel(message: Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state:
+        await state.clear()
+        await message.answer("❌ Operation cancelled")
+    else:
+        await message.answer("❌ No active operations to cancel")
