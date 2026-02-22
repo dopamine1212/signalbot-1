@@ -24,7 +24,7 @@ module.exports = {
       name: "landing-signal",
       cwd: "/root/signalbot-1/Landing-signal",
       script: "npx",
-      args: "vite preview --host 0.0.0.0 --port 4173",
+      args: "serve dist -l 4173 --no-clipboard",
       autorestart: true,
       max_restarts: 20,
       restart_delay: 3000,
