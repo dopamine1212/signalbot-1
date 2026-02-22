@@ -2,39 +2,33 @@ module.exports = {
   apps: [
     {
       name: "signal-bot-1",
-      cwd: "./signal-bot-1",
+      cwd: "/root/signalbot-1/signal-bot-1",
       script: "main.py",
-      interpreter: "python3",
+      interpreter: "/root/signalbot-1/signal-bot-1/venv/bin/python",
       autorestart: true,
       max_restarts: 20,
       restart_delay: 3000,
-      env: {
-        PYTHONUNBUFFERED: "1",
-      },
+      env: { PYTHONUNBUFFERED: "1" },
     },
     {
       name: "signal-bot-2",
-      cwd: "./signal-bot-2",
+      cwd: "/root/signalbot-1/signal-bot-2",
       script: "main.py",
-      interpreter: "python3",
+      interpreter: "/root/signalbot-1/signal-bot-2/venv/bin/python",
       autorestart: true,
       max_restarts: 20,
       restart_delay: 3000,
-      env: {
-        PYTHONUNBUFFERED: "1",
-      },
+      env: { PYTHONUNBUFFERED: "1" },
     },
     {
       name: "landing-signal",
-      cwd: "./Landing-signal",
+      cwd: "/root/signalbot-1/Landing-signal",
       script: "npm",
       args: "run preview -- --host 0.0.0.0 --port 4173",
       autorestart: true,
       max_restarts: 20,
       restart_delay: 3000,
-      env: {
-        NODE_ENV: "production",
-      },
+      env: { NODE_ENV: "production" },
     },
   ],
 };
