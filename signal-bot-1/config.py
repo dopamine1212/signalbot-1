@@ -26,7 +26,7 @@ class Settings:
     CRYPTO_PAY_TESTNET: bool = os.getenv("CRYPTO_PAY_TESTNET", "false").lower() == "true"
     
     # Channels and Links
-    LANDING_URL: str = os.getenv("LANDING_URL", "http://89.169.2.206/").strip()
+    LANDING_URL: str = os.getenv("LANDING_URL", "http://89.169.2.206:4173/").strip()
     # 📘 reviews (ссылка на канал/чат)
     REVIEWS_CHANNEL: str = os.getenv("REVIEWS_CHANNEL", "https://t.me/+zZdcOfpyTkc3OGMx")
     SIGNALS_CHANNEL: str = os.getenv("SIGNALS_CHANNEL", "")
