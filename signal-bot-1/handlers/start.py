@@ -40,9 +40,9 @@ def get_main_keyboard() -> ReplyKeyboardMarkup:
     """Клавиатура под строкой ввода: Главное меню и подписка"""
     keyboard = ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="Main menu",icon_custom_emoji_id="5197269100878907942",style='success')],
-            [KeyboardButton(text="choose a subscription",icon_custom_emoji_id="5372980108493596586",style='success')],
-            [KeyboardButton(text="BONUS",icon_custom_emoji_id="5390823932376915757",style='success')],
+            [KeyboardButton(text="Main menu",icon_custom_emoji_id="5197269100878907942",style='primary')],
+            [KeyboardButton(text="choose a subscription",icon_custom_emoji_id="5372980108493596586",style='primary')],
+            [KeyboardButton(text="BONUS",icon_custom_emoji_id="5390823932376915757",style='primary')],
         ],
         resize_keyboard=True,
         input_field_placeholder="Choose an action..."
@@ -216,9 +216,9 @@ async def buy_subscription(message: Message):
         f"Select a plan:"
     )
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="$24 / month", callback_data="pay_24", style='success', icon_custom_emoji_id="5460894000233854417")],
-        [InlineKeyboardButton(text="$100 / 6 months", callback_data="pay_100", style='success', icon_custom_emoji_id="5460894000233854417")],
-        [InlineKeyboardButton(text="$200 / year", callback_data="pay_200", style='success', icon_custom_emoji_id="5460894000233854417")],
+        [InlineKeyboardButton(text="$24 | month", callback_data="pay_24", style='danger')],
+        [InlineKeyboardButton(text="$100 | 6 months", callback_data="pay_100", style='danger')],
+        [InlineKeyboardButton(text="$200 | year", callback_data="pay_200", style='danger')],
     ])
     await message.answer(text, reply_markup=keyboard, parse_mode="HTML")
 
