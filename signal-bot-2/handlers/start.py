@@ -27,17 +27,17 @@ def get_welcome_text(premium: bool) -> str:
     """Welcome text with subscription status block."""
     if premium:
         return (
-            "👋 *Welcome to the signals bot!*\n\n"
+            "👋 <b>Welcome to the signals bot!</b>\n\n"
             "━━━━━━━━━━━━━━━━━━━━\n"
-            "📋 *Subscription status:* ✅ *Active*\n"
+            "📋 <b>Subscription status:</b> ✅ <b>Active</b>\n"
             "━━━━━━━━━━━━━━━━━━━━\n\n"
             "You will receive trading signals here with pinned messages.\n\n"
             "No commands needed — just wait for the updates."
         )
     return (
-        "👋 *Welcome to the signals bot!*\n\n"
+        "👋 <b>Welcome to the signals bot!</b>\n\n"
         "━━━━━━━━━━━━━━━━━━━━\n"
-        "📋 *Subscription status:* ❌ *Inactive*\n"
+        "📋 <b>Subscription status:</b> ❌ <b>Inactive</b>\n"
         "━━━━━━━━━━━━━━━━━━━━\n\n"
         "🔒 This bot is for subscribers only. Get a subscription in the main bot — you will receive the link after payment."
     )
@@ -72,7 +72,7 @@ async def cmd_start(message: Message):
             ]
         )
 
-    await message.answer(text, reply_markup=keyboard)
+    await message.answer(text, reply_markup=keyboard, parse_mode="HTML")
 
 
 @router.callback_query(F.data == "check_subscription")
