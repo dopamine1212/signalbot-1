@@ -23,8 +23,8 @@ module.exports = {
     {
       name: "landing-signal",
       cwd: "/root/signalbot-1/Landing-signal",
-      script: "npm",
-      args: "run preview -- --host 0.0.0.0 --port 4173",
+      script: "npx",
+      args: "vite preview --host 0.0.0.0 --port 4173",
       autorestart: true,
       max_restarts: 20,
       restart_delay: 3000,
