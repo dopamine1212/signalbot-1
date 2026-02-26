@@ -22,9 +22,9 @@ module.exports = {
     },
     {
       name: "bonus-bot",
-      cwd: "/root/signalbot-1/bonus-bot",
+      cwd: "/root/signalbot-1/BonusBot GPT",
       script: "main.py",
-      interpreter: "/root/signalbot-1/bonus-bot/venv/bin/python",
+      interpreter: "/root/signalbot-1/BonusBot GPT/venv/bin/python",
       autorestart: true,
       max_restarts: 20,
       restart_delay: 3000,
