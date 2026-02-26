@@ -1,9 +1,11 @@
+// Перед первым запуском на сервере: cd /root/signalbot-1 && git pull origin main
+// Убедись что есть: signal-bot-1/main.py, signal-bot-2/main.py, BonusBot GPT/main.py, Landing-signal/dist/
 module.exports = {
   apps: [
     {
       name: "signal-bot-1",
       cwd: "/root/signalbot-1/signal-bot-1",
-      script: "main.py",
+      script: "/root/signalbot-1/signal-bot-1/main.py",
       interpreter: "/root/signalbot-1/signal-bot-1/venv/bin/python",
       autorestart: true,
       max_restarts: 20,
@@ -13,7 +15,7 @@ module.exports = {
     {
       name: "signal-bot-2",
       cwd: "/root/signalbot-1/signal-bot-2",
-      script: "main.py",
+      script: "/root/signalbot-1/signal-bot-2/main.py",
       interpreter: "/root/signalbot-1/signal-bot-2/venv/bin/python",
       autorestart: true,
       max_restarts: 20,
@@ -23,7 +25,7 @@ module.exports = {
     {
       name: "bonus-bot",
       cwd: "/root/signalbot-1/BonusBot GPT",
-      script: "main.py",
+      script: "/root/signalbot-1/BonusBot GPT/main.py",
       interpreter: "/root/signalbot-1/BonusBot GPT/venv/bin/python",
       autorestart: true,
       max_restarts: 20,
