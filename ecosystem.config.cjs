@@ -21,6 +21,16 @@ module.exports = {
       env: { PYTHONUNBUFFERED: "1" },
     },
     {
+      name: "bonus-bot",
+      cwd: "/root/signalbot-1/bonus-bot",
+      script: "main.py",
+      interpreter: "/root/signalbot-1/bonus-bot/venv/bin/python",
+      autorestart: true,
+      max_restarts: 20,
+      restart_delay: 3000,
+      env: { PYTHONUNBUFFERED: "1" },
+    },
+    {
       name: "landing-signal",
       cwd: "/root/signalbot-1/Landing-signal",
       script: "npx",

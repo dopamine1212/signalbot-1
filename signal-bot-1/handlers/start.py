@@ -231,12 +231,15 @@ async def buy_subscription(message: Message):
     await message.answer(text, reply_markup=keyboard, parse_mode="HTML")
 
 
+GPT_BONUS_BOT_LINK = "https://t.me/GPTBonus_bot"
+
+
 @router.message(lambda message: message.text == "BONUS")
 async def bonus(message: Message):
-    """📦 BONUS"""
-    if settings.PRODUCT_CHANNEL:
-        text = f"📦 *BONUS*\n\n{settings.PRODUCT_CHANNEL}"
-    else:
-        text = "📦 *BONUS*\n\nBonus materials will appear here."
-    await message.answer(text, reply_markup=get_main_keyboard())
+    """Bonus: message + GPT_BOT button → @GPTBonus_bot"""
+    text = "Bonus"
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="GPT_BOT", url=GPT_BONUS_BOT_LINK)],
+    ])
+    await message.answer(text, reply_markup=keyboard)
 
