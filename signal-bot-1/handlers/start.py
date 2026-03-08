@@ -1,39 +1,14 @@
 """
-Обработчик команды /start и проверка подписки на канал.
+Обработчик команды /start (без обязательной подписки на канал).
 """
 import asyncio
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import Command
-from aiogram.enums import ChatMemberStatus
 from services import UserService
 from config import settings
 
 router = Router()
-
-# Канал, на который нужно подписаться (без @)
-REQUIRED_CHANNEL = (settings.REQUIRED_CHANNEL or "SaawyerCrypto").strip().lstrip("@")
-CHANNEL_LINK = f"https://t.me/{REQUIRED_CHANNEL}" if REQUIRED_CHANNEL else ""
-
-
-
-async def check_channel_subscription(bot, user_id: int) -> bool:
-    """Проверяет, подписан ли пользователь на обязательный канал."""
-    if not REQUIRED_CHANNEL:
-        return True
-    try:
-        member = await bot.get_chat_member(chat_id=f"@{REQUIRED_CHANNEL}", user_id=user_id)
-        return member.status in (ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.CREATOR)
-    except Exception:
-        return False
-
-
-def get_subscribe_keyboard() -> InlineKeyboardMarkup:
-    """Subscribe to channel + Check subscription buttons."""
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="📢 Subscribe to channel", url=CHANNEL_LINK)],
-        [InlineKeyboardButton(text="✅ Check subscription", callback_data="check_channel_subscription")],
-    ])
 
 
 def get_main_keyboard() -> ReplyKeyboardMarkup:
@@ -103,15 +78,8 @@ MAIN_MENU_TEXT = """
 
 @router.message(Command("start"))
 async def cmd_start(message: Message):
-    """Обработчик /start: сначала проверка подписки на канал, затем приветствие."""
+    """Обработчик /start: приветствие без проверки подписки на канал."""
     user_id = message.from_user.id
-    if not await check_channel_subscription(message.bot, user_id):
-        await message.answer(
-            "👋 *To use the bot, please subscribe to our channel.*\n\n"
-            "Tap the button below to join the channel, then tap «Check subscription».",
-            reply_markup=get_subscribe_keyboard(),
-        )
-        return
 
     user = UserService.get_or_create_user(
         telegram_id=user_id,
@@ -151,33 +119,6 @@ async def cmd_start(message: Message):
 
     await message.answer(welcome_message_4, parse_mode="HTML", reply_markup=get_main_keyboard())
 
-
-
-@router.callback_query(F.data == "check_channel_subscription")
-async def cb_check_channel_subscription(callback: CallbackQuery):
-    """Проверка подписки по кнопке «Проверить подписку»."""
-    user_id = callback.from_user.id
-    if not await check_channel_subscription(callback.bot, user_id):
-        try:
-            await callback.answer("❌ Please subscribe to the channel first, then tap again.", show_alert=True)
-        except Exception:
-            await callback.answer()
-        return
-
-    await callback.answer("✅ Subscription confirmed. Thank you!", show_alert=False)
-
-    user = UserService.get_or_create_user(
-        telegram_id=user_id,
-        username=callback.from_user.username,
-        first_name=callback.from_user.first_name,
-        last_name=callback.from_user.last_name,
-    )
-    welcome_text = (
-        f"👋 Hello, {callback.from_user.first_name}!\n\n"
-        "Welcome to the futures signals bot.\n\n"
-        "Tap <b>Main menu</b> to open links."
-    )
-    await callback.message.answer(welcome_text, reply_markup=get_main_keyboard(), parse_mode="HTML")
 
 
 @router.message(lambda message: message.text == "Main menu")
@@ -236,10 +177,14 @@ GPT_BONUS_BOT_LINK = "https://t.me/GPTBonus_bot"
 
 @router.message(lambda message: message.text == "BONUS")
 async def bonus(message: Message):
-    """Bonus: message + GPT_BOT button → @GPTBonus_bot"""
-    text = "Bonus"
+    """Bonus: текст про AI Scanner + цветная кнопка в бонус-бота."""
+    text = (
+        "<b><tg-emoji emoji-id=\"5474638166163988906\">🤖</tg-emoji> TomSawyer AI Scanner</b>\n\n"
+        "AI chart analysis tool for traders\n\n"
+  
+    )
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="GPT_BOT", url=GPT_BONUS_BOT_LINK)],
+        [InlineKeyboardButton(icon_custom_emoji_id="5206473031110631274",text="AI Chart Scanner", url=GPT_BONUS_BOT_LINK, style="primary")],
     ])
-    await message.answer(text, reply_markup=keyboard)
+    await message.answer(text, reply_markup=keyboard, parse_mode="HTML")
 

@@ -1,16 +1,19 @@
 """
 Bot 2 admin: send signals and broadcast only. Shared Supabase DB with main bot.
 """
+import html
 import json
 import logging
 import asyncio
 from aiogram import Router, F
-from aiogram.types import Message, InputMediaPhoto, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from aiogram.types import Message, InputMediaPhoto, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, LinkPreviewOptions
 from aiogram.filters import Command, StateFilter
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from database import get_db
 from services import AdminService
+from config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -22,9 +25,55 @@ def build_signal_body(signal_text: str) -> str:
     return (signal_text or "").strip()
 
 
+def _h(s: str) -> str:
+    """Escape for HTML (Telegram parse_mode=HTML)."""
+    return html.escape(str(s))
+
+
+# Шаблоны сигналов SHORT/LONG. Переменные задаёт админ. Отправляются с parse_mode=HTML.
+def build_short_signal(
+    price_low: str, price_high: str, leverage: str, deposit_pct: str,
+    target1: str, target2: str, target3: str, target4: str, target5: str,
+    stop_loss: str,
+) -> str:
+    return (
+        f"<tg-emoji emoji-id=\"5283224689395640696\">📉</tg-emoji> Open <b>SHORT</b> <tg-emoji emoji-id=\"5472265471610856247\">⛔️</tg-emoji> at price between\n"
+        f"${_h(price_low)} – ${_h(price_high)} with X{_h(leverage)} leverage\n"
+        f"on OKX with {_h(deposit_pct)}% of your deposit\n\n"
+        f"Targets:\n\n"
+        f"1️⃣ Close the order at the price ${_h(target1)}\n"
+        f"2️⃣ Close the order at the price ${_h(target2)}\n"
+        f"3️⃣ Close the order at the price ${_h(target3)}\n"
+        f"4️⃣ Close the order at the price ${_h(target4)}\n"
+        f"5️⃣ Close the order at the price ${_h(target5)}\n\n"
+        f"❗️ STOP LOSS: ${_h(stop_loss)}"
+    )
+
+
+def build_long_signal(
+    price_low: str, price_high: str, leverage: str, deposit_pct: str,
+    target1: str, target2: str, target3: str, target4: str, target5: str,
+    stop_loss: str,
+) -> str:
+    return (
+        f"<tg-emoji emoji-id=\"5298952911173205130\">📈</tg-emoji> Open <b>LONG</b> <tg-emoji emoji-id=\"5438176453621457379\">🔠</tg-emoji> at price between\n"
+        f"${_h(price_low)} – ${_h(price_high)} with X{_h(leverage)} leverage\n"
+        f"on OKX with {_h(deposit_pct)}% of your deposit\n\n"
+        f"Targets:\n\n"
+        f"1️⃣ Close the order at the price ${_h(target1)}\n"
+        f"2️⃣ Close the order at the price ${_h(target2)}\n"
+        f"3️⃣ Close the order at the price ${_h(target3)}\n"
+        f"4️⃣ Close the order at the price ${_h(target4)}\n"
+        f"5️⃣ Close the order at the price ${_h(target5)}\n\n"
+        f"❗️ STOP LOSS: ${_h(stop_loss)}"
+    )
+
+
 class SignalStates(StatesGroup):
     waiting_for_photos = State()
-    waiting_for_text = State()
+    waiting_for_signal_type = State()   # SHORT или LONG
+    waiting_for_signal_vars = State()   # переменные для шаблона
+    waiting_for_text = State()         # для Edit (повторный ввод)
     waiting_for_confirm = State()
 
 
@@ -56,8 +105,10 @@ async def cmd_admin(message: Message):
 
 📢 *Signals & messages:*
 `/send_signal` - Send signal (1-2 photos + text, Group 1 or 2)
-`/send_message` - Send a simple message to all users
+`/send_message` - Send custom message to all users
+`/send_notification` - Send prepared template to all users
 `/summarize` - Подвести итоги по группе
+`/send_notification_now` - Send prepared template to all users now
 
 Send /cancel to cancel any operation.
 """
@@ -151,6 +202,36 @@ async def cb_summarize_group(callback: CallbackQuery):
     await callback.answer()
 
 
+@router.message(Command("send_notification"))
+async def cmd_send_notification(message: Message):
+    """Отправка заготовленного уведомления всем пользователям (текст из config.NOTIFICATION_TEMPLATE)."""
+    if not AdminService.is_admin(message.from_user.id):
+        return
+    text = (settings.NOTIFICATION_TEMPLATE or "").strip()
+    if not text:
+        await message.answer("❌ NOTIFICATION_TEMPLATE пустой. Заполните в config.py или .env")
+        return
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT telegram_id FROM users")
+    users = [row[0] for row in cursor.fetchall()]
+    sent = 0
+    failed = 0
+    for uid in users:
+        try:
+            await message.bot.send_message(
+                chat_id=uid,
+                text=text,
+                parse_mode="HTML",
+                link_preview_options=LinkPreviewOptions(is_disabled=True),
+            )
+            sent += 1
+        except Exception as e:
+            failed += 1
+            logger.debug("Notification to %s: %s", uid, e)
+    await message.answer(f"✅ Notification sent: {sent} delivered, {failed} errors.")
+
+
 @router.message(Command("send_message"))
 async def cmd_send_message(message: Message, state: FSMContext):
     """Broadcast a message to all users (admin only)."""
@@ -227,8 +308,7 @@ async def cmd_send_signal(message: Message, state: FSMContext):
         return
     await message.answer(
         "📸 *Send Signal*\n\n"
-        "Send 1 or 2 photos for the signal.\n"
-        "After sending photos, write the signal text.\n\n"
+        "Send 1 or 2 photos, then choose SHORT or LONG and enter the template variables (one line, 10 numbers).\n\n"
         "Send /cancel to cancel"
     )
     await state.set_state(SignalStates.waiting_for_photos)
@@ -259,9 +339,16 @@ async def process_signal_photos(message: Message, state: FSMContext):
                 await message.answer("⚠️ Only 2 photos accepted (maximum)")
             await message.answer(
                 f"✅ Photos received ({len(photo_ids)} pcs.)!\n\n"
-                "Now send the signal text."
+                "Choose signal type:"
             )
-            await state.set_state(SignalStates.waiting_for_text)
+            await state.set_state(SignalStates.waiting_for_signal_type)
+            kb = InlineKeyboardBuilder()
+            kb.button(text="📉 SHORT", callback_data="signal_type_short")
+            kb.button(text="📈 LONG", callback_data="signal_type_long")
+            await message.answer(
+                "SHORT or LONG?",
+                reply_markup=kb.as_markup()
+            )
             await asyncio.sleep(0.5)
             if message.media_group_id in media_groups_storage:
                 del media_groups_storage[message.media_group_id]
@@ -279,15 +366,23 @@ async def process_signal_photos(message: Message, state: FSMContext):
     if len(photo_ids) >= 2:
         await message.answer(
             "✅ Photos received!\n\n"
-            "Now send the signal text."
+            "Choose signal type:"
         )
-        await state.set_state(SignalStates.waiting_for_text)
+        kb = InlineKeyboardBuilder()
+        kb.button(text="📉 SHORT", callback_data="signal_type_short")
+        kb.button(text="📈 LONG", callback_data="signal_type_long")
+        await message.answer("SHORT or LONG?", reply_markup=kb.as_markup())
+        await state.set_state(SignalStates.waiting_for_signal_type)
     else:
         await message.answer(
             f"✅ Photo {len(photo_ids)}/2 received!\n\n"
-            "Send another photo or send the signal text."
+            "Send another photo or choose signal type below."
         )
-        await state.set_state(SignalStates.waiting_for_text)
+        kb = InlineKeyboardBuilder()
+        kb.button(text="📉 SHORT", callback_data="signal_type_short")
+        kb.button(text="📈 LONG", callback_data="signal_type_long")
+        await message.answer("SHORT or LONG?", reply_markup=kb.as_markup())
+        await state.set_state(SignalStates.waiting_for_signal_type)
 
 
 @router.message(StateFilter(SignalStates.waiting_for_photos), F.text)
@@ -300,7 +395,72 @@ async def process_signal_text_after_photo(message: Message, state: FSMContext):
     if not data.get("photo_ids"):
         await message.answer("⚠️ Send photos first!")
         return
-    await state.update_data(text=message.text)
+    await message.answer("Choose signal type:")
+    kb = InlineKeyboardBuilder()
+    kb.button(text="📉 SHORT", callback_data="signal_type_short")
+    kb.button(text="📈 LONG", callback_data="signal_type_long")
+    await message.answer("SHORT or LONG?", reply_markup=kb.as_markup())
+    await state.set_state(SignalStates.waiting_for_signal_type)
+
+
+@router.message(StateFilter(SignalStates.waiting_for_signal_type), F.text)
+async def process_signal_type_text(message: Message, state: FSMContext):
+    if message.text and message.text.strip() == "/cancel":
+        await state.clear()
+        await message.answer("❌ Signal sending cancelled")
+        return
+    await message.answer("Нажмите кнопку 📉 SHORT или 📈 LONG выше.")
+
+@router.callback_query(
+    F.data.in_(["signal_type_short", "signal_type_long"]),
+    StateFilter(SignalStates.waiting_for_signal_type),
+)
+async def process_signal_type(callback: CallbackQuery, state: FSMContext):
+    try:
+        await callback.answer()
+    except Exception:
+        pass
+    signal_type = "short" if callback.data == "signal_type_short" else "long"
+    await state.update_data(signal_type=signal_type)
+    await state.set_state(SignalStates.waiting_for_signal_vars)
+    await callback.message.answer(
+        "Отправьте одной строкой через пробел:\n"
+        "цена_мин цена_макс плечо %_депозита цель1 цель2 цель3 цель4 цель5 стоп_лосс\n\n"
+        "Пример:\n"
+        "2107.2 2130.5 25 2 2090.3 2081.8 2063.2 2042.1 2009.9 2200.34"
+    )
+
+
+@router.message(StateFilter(SignalStates.waiting_for_signal_vars), F.text)
+async def process_signal_vars(message: Message, state: FSMContext):
+    if message.text and message.text.strip() == "/cancel":
+        await state.clear()
+        await message.answer("❌ Signal sending cancelled")
+        return
+    parts = message.text.strip().split()
+    if len(parts) != 10:
+        await message.answer(
+            "⚠️ Нужно 10 значений через пробел: цена_мин цена_макс плечо %_депозита "
+            "цель1 цель2 цель3 цель4 цель5 стоп_лосс. Попробуйте снова."
+        )
+        return
+    (
+        price_low, price_high, leverage, deposit_pct,
+        target1, target2, target3, target4, target5, stop_loss
+    ) = parts
+    data = await state.get_data()
+    signal_type = data.get("signal_type", "short")
+    if signal_type == "long":
+        text = build_long_signal(
+            price_low, price_high, leverage, deposit_pct,
+            target1, target2, target3, target4, target5, stop_loss,
+        )
+    else:
+        text = build_short_signal(
+            price_low, price_high, leverage, deposit_pct,
+            target1, target2, target3, target4, target5, stop_loss,
+        )
+    await state.update_data(text=text)
     await show_signal_preview(message, state)
 
 
@@ -360,7 +520,7 @@ async def show_signal_preview(message: Message, state: FSMContext):
                 photo=photo_ids[0],
                 caption=preview_text,
                 reply_markup=keyboard,
-                parse_mode=None
+                parse_mode="HTML"
             )
         else:
             media = [
@@ -368,9 +528,9 @@ async def show_signal_preview(message: Message, state: FSMContext):
                 InputMediaPhoto(media=photo_ids[1])
             ]
             await message.bot.send_media_group(chat_id=message.chat.id, media=media)
-            await message.answer(preview_text, reply_markup=keyboard, parse_mode=None)
+            await message.answer(preview_text, reply_markup=keyboard, parse_mode="HTML")
     else:
-        await message.answer(preview_text, reply_markup=keyboard, parse_mode=None)
+        await message.answer(preview_text, reply_markup=keyboard, parse_mode="HTML")
     await state.set_state(SignalStates.waiting_for_confirm)
 
 
@@ -387,17 +547,18 @@ async def signal_cancel(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == "signal_edit", StateFilter(SignalStates.waiting_for_confirm))
 async def signal_edit(callback: CallbackQuery, state: FSMContext):
     try:
-        await callback.message.edit_text(
-            "✏️ *Editing Signal*\n\n"
-            "Send new signal text or send /cancel to cancel."
-        )
+        await callback.answer()
     except Exception:
-        await callback.message.answer(
-            "✏️ *Editing Signal*\n\n"
-            "Send new signal text or send /cancel to cancel."
-        )
-    await state.set_state(SignalStates.waiting_for_text)
-    await callback.answer()
+        pass
+    try:
+        await callback.message.edit_text("✏️ Редактирование. Выберите тип сигнала:")
+    except Exception:
+        await callback.message.answer("✏️ Редактирование. Выберите тип сигнала:")
+    kb = InlineKeyboardBuilder()
+    kb.button(text="📉 SHORT", callback_data="signal_type_short")
+    kb.button(text="📈 LONG", callback_data="signal_type_long")
+    await callback.message.answer("SHORT or LONG?", reply_markup=kb.as_markup())
+    await state.set_state(SignalStates.waiting_for_signal_type)
 
 
 @router.callback_query(F.data.startswith("signal_send_"), StateFilter(SignalStates.waiting_for_confirm))
@@ -467,11 +628,11 @@ async def process_final_signal(message: Message, state: FSMContext, photo_ids=No
                         chat_id=user_telegram_id,
                         photo=photo_ids[0],
                         caption=body,
-                        parse_mode=None
+                        parse_mode="HTML"
                     )
                 else:
                     media = [
-                        InputMediaPhoto(media=photo_ids[0], caption=body),
+                        InputMediaPhoto(media=photo_ids[0], caption=body, parse_mode="HTML"),
                         InputMediaPhoto(media=photo_ids[1])
                     ]
                     sent_messages = await message.bot.send_media_group(
@@ -483,7 +644,7 @@ async def process_final_signal(message: Message, state: FSMContext, photo_ids=No
                 msg_to_pin = await message.bot.send_message(
                     chat_id=user_telegram_id,
                     text=body,
-                    parse_mode=None
+                    parse_mode="HTML"
                 )
             if msg_to_pin:
                 try:

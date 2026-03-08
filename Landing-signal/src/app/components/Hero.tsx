@@ -64,8 +64,8 @@ export function Hero() {
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform relative z-10" />
           </MagneticButton>
 
-          <MagneticButton href="bot" className="px-8 py-4 bg-zinc-900 border border-zinc-800 hover:border-purple-500/50 text-white rounded-xl font-semibold text-lg transition-all duration-300 hover:bg-zinc-800">
-            Watch Demo
+          <MagneticButton href="products" className="px-8 py-4 bg-zinc-900 border border-zinc-800 hover:border-purple-500/50 text-white rounded-xl font-semibold text-lg transition-all duration-300 hover:bg-zinc-800">
+            Other Products
           </MagneticButton>
         </motion.div>
 

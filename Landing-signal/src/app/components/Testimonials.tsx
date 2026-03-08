@@ -1,6 +1,13 @@
 import { Star, Quote } from 'lucide-react';
 import { motion } from 'motion/react';
 import { AnimatedCounter } from '@/app/components/AnimatedCounter';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/app/components/ui/carousel';
 
 export function Testimonials() {
   const testimonials = [
@@ -25,8 +32,8 @@ export function Testimonials() {
   ];
 
   return (
-    <section className="py-24 bg-black">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-24 bg-black overflow-x-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full max-w-[100vw] box-border">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -42,34 +49,32 @@ export function Testimonials() {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-6 mb-16">
-          {testimonials.map((testimonial, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="bg-zinc-950 border border-zinc-800 rounded-xl p-8 hover:border-purple-500/30 transition-all duration-300"
-            >
-              <div className="flex items-center gap-1 mb-4">
-                {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 fill-purple-500 text-purple-500" />
-                ))}
-              </div>
-              
-              <Quote className="w-8 h-8 text-purple-600/30 mb-4" />
-              
-              <p className="text-gray-400 leading-relaxed mb-6">
-                {testimonial.content}
-              </p>
-              
-              <div className="border-t border-zinc-800 pt-4">
-                <p className="font-semibold text-white">{testimonial.name}</p>
-                <p className="text-sm text-purple-400">{testimonial.role}</p>
-              </div>
-            </motion.div>
-          ))}
+        <div className="relative px-10 md:px-12 mb-16">
+          <Carousel opts={{ align: 'start', loop: true }} className="w-full">
+            <CarouselContent className="-ml-4">
+              {testimonials.map((testimonial, index) => (
+                <CarouselItem key={index} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
+                  <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-8 h-full flex flex-col hover:border-purple-500/30 transition-all duration-300 min-h-[280px]">
+                    <div className="flex items-center gap-1 mb-4">
+                      {[...Array(testimonial.rating)].map((_, i) => (
+                        <Star key={i} className="w-5 h-5 fill-purple-500 text-purple-500" />
+                      ))}
+                    </div>
+                    <Quote className="w-8 h-8 text-purple-600/30 mb-4 shrink-0" />
+                    <p className="text-gray-400 leading-relaxed flex-1 min-h-0">
+                      {testimonial.content}
+                    </p>
+                    <div className="border-t border-zinc-800 pt-4 mt-4 shrink-0">
+                      <p className="font-semibold text-white">{testimonial.name}</p>
+                      <p className="text-sm text-purple-400">{testimonial.role}</p>
+                    </div>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="left-0 border-zinc-700 bg-zinc-900 text-white hover:bg-zinc-800 hover:text-white" />
+            <CarouselNext className="right-0 border-zinc-700 bg-zinc-900 text-white hover:bg-zinc-800 hover:text-white" />
+          </Carousel>
         </div>
 
         <motion.div
@@ -77,28 +82,28 @@ export function Testimonials() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="text-center"
+          className="text-center overflow-hidden"
         >
-          <div className="inline-flex items-center gap-8 px-8 py-6 bg-zinc-950 border border-zinc-800 rounded-2xl">
-            <div className="text-center">
+          <div className="inline-flex flex-col sm:flex-row items-center gap-4 sm:gap-8 px-4 sm:px-8 py-6 bg-zinc-950 border border-zinc-800 rounded-2xl w-full max-w-full sm:w-auto box-border">
+            <div className="text-center min-w-0">
               <div className="text-4xl font-bold text-white mb-1">
                 <AnimatedCounter end={1000} suffix="+" />
               </div>
-              <div className="text-sm text-gray-500 uppercase tracking-wider">Active Users</div>
+              <div className="text-sm text-gray-500 uppercase tracking-wider whitespace-nowrap">Active Users</div>
             </div>
-            <div className="w-px h-12 bg-zinc-800"></div>
-            <div className="text-center">
+            <div className="w-12 h-px sm:w-px sm:h-12 bg-zinc-800 shrink-0"></div>
+            <div className="text-center min-w-0">
               <div className="text-4xl font-bold text-white mb-1">
                 <AnimatedCounter end={4.9} decimals={1} suffix="★" />
               </div>
-              <div className="text-sm text-gray-500 uppercase tracking-wider">Average Rating</div>
+              <div className="text-sm text-gray-500 uppercase tracking-wider whitespace-nowrap">Average Rating</div>
             </div>
-            <div className="w-px h-12 bg-zinc-800"></div>
-            <div className="text-center">
+            <div className="w-12 h-px sm:w-px sm:h-12 bg-zinc-800 shrink-0"></div>
+            <div className="text-center min-w-0">
               <div className="text-4xl font-bold text-white mb-1">
                 <AnimatedCounter end={98} suffix="%" />
               </div>
-              <div className="text-sm text-gray-500 uppercase tracking-wider">Satisfaction</div>
+              <div className="text-sm text-gray-500 uppercase tracking-wider whitespace-nowrap">Satisfaction</div>
             </div>
           </div>
         </motion.div>

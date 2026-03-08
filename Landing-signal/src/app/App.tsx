@@ -13,7 +13,7 @@ import { BonusFloatingButton } from '@/app/components/BonusFloatingButton';
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-black text-white antialiased">
+    <div className="min-h-screen bg-black text-white antialiased overflow-x-hidden max-w-[100vw]">
       <FloatingTicker />
       <BonusFloatingButton />
       <div className="pt-12">

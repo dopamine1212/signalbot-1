@@ -16,6 +16,17 @@ class Settings:
     DATABASE_URL: str = os.getenv("DATABASE_URL", "")
     # Main menu link — @futures_signalfast_bot (button "Go to main menu")
     MAIN_BOT_LINK: str = os.getenv("MAIN_BOT_LINK", "https://t.me/futures_signalfast_bot").strip() or "https://t.me/futures_signalfast_bot"
+    # Текст уведомления по команде /send_notification (админ). Редактируйте под себя.
+    NOTIFICATION_TEMPLATE: str = os.getenv(
+        "NOTIFICATION_TEMPLATE",
+        """<tg-emoji emoji-id=\"5316615057939897832\">🤖</tg-emoji> Today's signal is at ... GMT
+
+<tg-emoji emoji-id=\"5265057377165531669\">🚀</tg-emoji> reminders
+
+• 50% of profit will be sent to us after you receive profit
+
+<a href="http://t.me/ecoTomSawyer"><b>Need some help?</b></a>""",
+    ).strip()
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 
 

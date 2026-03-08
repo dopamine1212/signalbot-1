@@ -1,17 +1,20 @@
 """
 Телеграм-бот анализа графиков на aiogram.
 Принимает скриншоты графиков, отправляет в GPT Vision и возвращает текстовый анализ.
+Обязательная подписка на канал (если задан REQUIRED_CHANNEL в .env).
 """
 import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher, F
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.enums import ChatMemberStatus
 
 from config import (
     ALLOWED_DOCUMENT_EXTENSIONS,
     ALLOWED_DOCUMENT_MIMES,
     TELEGRAM_BOT_TOKEN,
+    REQUIRED_CHANNEL,
 )
 from gpt_client import analyze_chart
 
@@ -21,14 +24,17 @@ logger = logging.getLogger(__name__)
 bot = Bot(token=TELEGRAM_BOT_TOKEN)
 dp = Dispatcher()
 
-# --- Сообщения по ТЗ ---
+# --- Сообщения по ТЗ (HTML) ---
 # 1. Запуск /start
-MSG_START = """👋 Hi!
+MSG_START = """This <b><tg-emoji emoji-id=\"5474638166163988906\">🤖</tg-emoji></b> AI tool is built inside the Tom Sawyer trading system
 
-🤖 I analyze trading charts using AI.
+<b><tg-emoji emoji-id="5258205968025525531">📸</tg-emoji></b> Drop a chart screenshot and get:
 
-📸 Send me a screenshot of a chart, and I will return a clear text analysis:
-trend, key levels, and possible scenarios"""
+- instant technical breakdown
+- key price zones
+- possible market scenarios
+
+<b>Fast  Clear  Useful</b>"""
 
 # 2. Пользователь отправил не изображение
 MSG_NOT_IMAGE = "❌ Please send a screenshot of a trading chart"
@@ -54,6 +60,30 @@ MSG_API_ERROR = """❌ Something went wrong while analyzing the chart.
 Please try again in a moment."""
 
 UNREADABLE_MARKER = "UNREADABLE_CHART"
+
+# Сообщение и кнопки при отсутствии подписки на канал
+MSG_SUBSCRIBE = """👋 To use the bot, please subscribe to our channel.
+
+Tap the button below to join, then tap «Check subscription»."""
+CHANNEL_LINK = f"https://t.me/{REQUIRED_CHANNEL}" if REQUIRED_CHANNEL else ""
+
+
+async def check_channel_subscription(bot: Bot, user_id: int) -> bool:
+    """Проверяет, подписан ли пользователь на обязательный канал."""
+    if not REQUIRED_CHANNEL:
+        return True
+    try:
+        member = await bot.get_chat_member(chat_id=f"@{REQUIRED_CHANNEL}", user_id=user_id)
+        return member.status in (ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.CREATOR)
+    except Exception:
+        return False
+
+
+def get_subscribe_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="📢 Subscribe to channel", url=CHANNEL_LINK)],
+        [InlineKeyboardButton(text="✅ Check subscription", callback_data="bonus_check_subscription")],
+    ])
 
 
 async def get_image_bytes(message: Message) -> bytes | None:
@@ -97,11 +127,26 @@ def is_start_command(message: Message) -> bool:
 
 @dp.message(F.func(is_start_command))
 async def cmd_start(message: Message) -> None:
-    await message.answer(MSG_START)
+    if not await check_channel_subscription(message.bot, message.from_user.id):
+        await message.answer(MSG_SUBSCRIBE, reply_markup=get_subscribe_keyboard())
+        return
+    await message.answer(MSG_START, parse_mode="HTML")
+
+
+@dp.callback_query(F.data == "bonus_check_subscription")
+async def cb_check_subscription(callback: CallbackQuery) -> None:
+    if not await check_channel_subscription(callback.bot, callback.from_user.id):
+        await callback.answer("❌ Please subscribe to the channel first, then tap again.", show_alert=True)
+        return
+    await callback.answer("✅ Subscription confirmed. Thank you!")
+    await callback.message.answer(MSG_START, parse_mode="HTML")
 
 
 @dp.message(F.photo)
 async def on_photo(message: Message) -> None:
+    if not await check_channel_subscription(message.bot, message.from_user.id):
+        await message.answer(MSG_SUBSCRIBE, reply_markup=get_subscribe_keyboard())
+        return
     await message.answer(MSG_CHART_RECEIVED)
     image_bytes = await get_image_bytes(message)
     if not image_bytes:
@@ -121,6 +166,9 @@ async def on_photo(message: Message) -> None:
 
 @dp.message(F.document)
 async def on_document(message: Message) -> None:
+    if not await check_channel_subscription(message.bot, message.from_user.id):
+        await message.answer(MSG_SUBSCRIBE, reply_markup=get_subscribe_keyboard())
+        return
     if not is_allowed_document(message):
         await message.answer(MSG_NOT_IMAGE)
         return
@@ -144,7 +192,10 @@ async def on_document(message: Message) -> None:
 
 @dp.message()
 async def on_other(message: Message) -> None:
-    """Любое сообщение не фото/документ — просим отправить скриншот."""
+    """Любое сообщение не фото/документ — проверка подписки и просим скриншот."""
+    if not await check_channel_subscription(message.bot, message.from_user.id):
+        await message.answer(MSG_SUBSCRIBE, reply_markup=get_subscribe_keyboard())
+        return
     await message.answer(MSG_NOT_IMAGE)
 
 

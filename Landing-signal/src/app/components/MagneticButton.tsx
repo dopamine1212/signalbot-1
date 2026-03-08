@@ -60,6 +60,17 @@ export function MagneticButton({ children, className = '', onClick, href }: Magn
     );
   }
 
+  if (href === 'products' || href === '#products-section') {
+    return (
+      <motion.a
+        {...motionProps}
+        href="#products-section"
+      >
+        {children}
+      </motion.a>
+    );
+  }
+
   return (
     <motion.button
       {...motionProps}

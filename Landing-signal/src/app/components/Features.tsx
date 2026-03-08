@@ -36,7 +36,7 @@ export function Features() {
   ];
 
   return (
-    <section className="py-24 bg-black relative overflow-hidden">
+    <section id="products-section" className="py-24 bg-black relative overflow-hidden">
       <motion.div
         className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px]"
         animate={{

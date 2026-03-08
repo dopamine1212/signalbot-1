@@ -24,22 +24,19 @@ def is_user_premium(telegram_id: int) -> bool:
 
 
 def get_welcome_text(premium: bool) -> str:
-    """Welcome text with subscription status block."""
+    """Welcome text with subscription status block (HTML)."""
     if premium:
         return (
-            "👋 <b>Welcome to the signals bot!</b>\n\n"
-            "━━━━━━━━━━━━━━━━━━━━\n"
-            "📋 <b>Subscription status:</b> ✅ <b>Active</b>\n"
-            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "<b>Welcome to Tom Sawyer signals bot</b>\n\n"
+            "Access status: <tg-emoji emoji-id=\"5212932275376759608\">✅</tg-emoji> Active\n\n"
             "You will receive trading signals here with pinned messages.\n\n"
             "No commands needed — just wait for the updates."
         )
     return (
-        "👋 <b>Welcome to the signals bot!</b>\n\n"
-        "━━━━━━━━━━━━━━━━━━━━\n"
-        "📋 <b>Subscription status:</b> ❌ <b>Inactive</b>\n"
-        "━━━━━━━━━━━━━━━━━━━━\n\n"
-        "🔒 This bot is for subscribers only. Get a subscription in the main bot — you will receive the link after payment."
+        "<b>Welcome to Tom Sawyer signals bot</b>\n\n"
+        "Access status: <tg-emoji emoji-id=\"5280950568636917742\">❎</tg-emoji> Inactive\n\n"
+        "<b><tg-emoji emoji-id=\"5305772219727642933\">🔒</tg-emoji> Access is restricted</b>\n\n"
+        "To activate signals, purchase a subscription in the main bot. After payment you will automatically receive full access to the signal system."
     )
 
 

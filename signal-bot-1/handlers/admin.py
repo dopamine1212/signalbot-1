@@ -1,14 +1,15 @@
 """
-Админские команды (первый бот: только рассылка сообщений, без отправки сигналов).
+Админские команды (бот №1): только отправка уведомлений (рассылка), без сигналов и итогов по группам.
 """
 import logging
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, LinkPreviewOptions
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from database import get_db, PaymentStatus
 from services import AdminService, UserService
+from config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -177,93 +178,44 @@ async def cmd_admin(message: Message):
 `/admin_add <user_id>` - Add admin
 `/admin_remove <user_id>` - Remove admin
 
-📢 *Messages:*
-`/send_message` - Send a simple message to all users
-
-📋 *Results:*
-`/summarize` - Подвести итоги (список юзеров, у которых прогноз зашёл)
+📢 *Notifications:*
+`/send_message` - Send custom message to all users
+`/send_notification` - Send prepared template to all users
+`/send_notification_now` - Send prepared template to all users now
 
 Send /cancel to cancel any operation.
 """
     await message.answer(admin_commands)
 
 
-@router.message(Command("summarize"))
-async def cmd_summarize(message: Message):
-    """Подвести итоги: выбор группы, у которой прогноз зашёл."""
+@router.message(Command("send_notification"))
+async def cmd_send_notification(message: Message):
+    """Отправка заготовленного уведомления всем пользователям (текст из config.NOTIFICATION_TEMPLATE)."""
     if not AdminService.is_admin(message.from_user.id):
-        await message.answer("❌ You don't have administrator rights")
         return
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="✅ Group 1", callback_data="summarize_group_1"),
-            InlineKeyboardButton(text="✅ Group 2", callback_data="summarize_group_2"),
-        ],
-    ])
-    await message.answer(
-        "📋 *Подвести итоги*\n\n"
-        "Выберите группу, у которой прогноз сработал:",
-        reply_markup=keyboard,
-        parse_mode=None,
-    )
-
-
-@router.callback_query(F.data.startswith("summarize_group_"))
-async def cb_summarize_group(callback: CallbackQuery):
-    """Показать список юзеров выбранной группы (прогноз зашёл)."""
-    if not AdminService.is_admin(callback.from_user.id):
-        await callback.answer("❌ No access", show_alert=True)
+    text = (settings.NOTIFICATION_TEMPLATE or "").strip()
+    if not text:
+        await message.answer("❌ NOTIFICATION_TEMPLATE пустой. Заполните в config.py или .env")
         return
-    try:
-        group = int(callback.data.replace("summarize_group_", ""))
-    except ValueError:
-        group = 1
-    if group not in (1, 2):
-        group = 1
-
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute(
-        """
-        SELECT telegram_id, username, first_name, last_name
-        FROM users
-        WHERE split_group = ? AND is_premium = 1 AND is_active = 1
-        ORDER BY id
-        """,
-        (group,),
-    )
-    rows = cursor.fetchall()
-
-    if not rows:
-        text = f"📋 Группа {group} — прогноз зашёл\n\nСписок пуст (нет активных премиум-пользователей в этой группе)."
+    cursor.execute("SELECT telegram_id FROM users")
+    users = [row[0] for row in cursor.fetchall()]
+    sent = 0
+    failed = 0
+    for uid in users:
         try:
-            await callback.message.edit_text(text, parse_mode=None)
-        except Exception:
-            await callback.message.answer(text, parse_mode=None)
-    else:
-        header = f"📋 Группа {group} — прогноз зашёл\n\nВсего: {len(rows)} чел.\n"
-        chunks = [header]
-        for i, row in enumerate(rows, 1):
-            uid = row[0]
-            username = row[1] or ""
-            first_name = (row[2] or "").strip()
-            last_name = (row[3] or "").strip()
-            name = f"{first_name} {last_name}".strip() or "—"
-            uname = f"@{username}" if username else ""
-            line = f"{i}. ID: {uid} | {uname} | {name}"
-            if len(chunks[-1]) + len(line) + 1 > 4000:
-                chunks.append(line)
-            else:
-                chunks[-1] += "\n" + line
-        for j, chunk in enumerate(chunks):
-            try:
-                if j == 0:
-                    await callback.message.edit_text(chunk, parse_mode=None)
-                else:
-                    await callback.message.answer(chunk, parse_mode=None)
-            except Exception:
-                await callback.message.answer(chunk, parse_mode=None)
-    await callback.answer()
+            await message.bot.send_message(
+                chat_id=uid,
+                text=text,
+                parse_mode="HTML",
+                link_preview_options=LinkPreviewOptions(is_disabled=True),
+            )
+            sent += 1
+        except Exception as e:
+            failed += 1
+            logger.debug("Notification to %s: %s", uid, e)
+    await message.answer(f"✅ Notification sent: {sent} delivered, {failed} errors.")
 
 
 @router.message(Command("send_message"))

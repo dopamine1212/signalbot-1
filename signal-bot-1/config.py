@@ -39,6 +39,18 @@ class Settings:
     # Обязательный канал для подписки (без @) — https://t.me/SaawyerCrypto
     REQUIRED_CHANNEL: str = os.getenv("REQUIRED_CHANNEL", "SaawyerCrypto").strip().lstrip("@")
 
+    # Текст уведомления по команде /send_notification (админ). Редактируйте под себя.
+    NOTIFICATION_TEMPLATE: str = os.getenv(
+        "NOTIFICATION_TEMPLATE",
+        """<tg-emoji emoji-id=\"5316615057939897832\">🤖</tg-emoji> Today's signal is at ... GMT
+
+<tg-emoji emoji-id=\"5265057377165531669\">🚀</tg-emoji> reminders
+
+• 50% of profit will be sent to us after you receive profit
+
+<a href="http://t.me/ecoTomSawyer"><b>Need some help?</b></a>""",
+    ).strip()
+
     # Other
     DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")

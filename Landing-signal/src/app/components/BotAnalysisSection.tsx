@@ -1,6 +1,15 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Database, Brain, Bell, TrendingUp, ArrowRight } from 'lucide-react';
+import { Database, Brain, Bell, TrendingUp, ExternalLink } from 'lucide-react';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/app/components/ui/carousel';
+
+const BOT_LINK = 'https://t.me/futures_signalfast_bot';
 
 const STEPS = [
   {
@@ -37,38 +46,46 @@ export function BotAnalysisSection() {
           className="text-center mb-14"
         >
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3">
-            How the Bot Analyzes the Market
+            Как работает бот / искусственный интеллект
           </h2>
           <p className="text-gray-500 text-lg max-w-2xl mx-auto">
-            From raw data to ready signals in your Telegram
+            От данных к готовым сигналам в Telegram
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-4">
-          {STEPS.map((step, i) => (
-            <motion.div
-              key={step.title}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="relative"
-            >
-              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 h-full flex flex-col items-center text-center hover:border-purple-500/40 transition-colors">
-                <div className="w-14 h-14 rounded-xl bg-purple-600/20 flex items-center justify-center mb-4">
-                  <step.icon className="w-7 h-7 text-purple-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">{step.title}</h3>
-                <p className="text-gray-500 text-sm">{step.desc}</p>
-              </div>
-              {i < STEPS.length - 1 && (
-                <div className="hidden lg:flex absolute top-1/2 -right-2 lg:-right-3 z-10 -translate-y-1/2 text-purple-500/60">
-                  <ArrowRight className="w-5 h-5" />
-                </div>
-              )}
-            </motion.div>
-          ))}
-        </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="relative px-10 md:px-12"
+        >
+          <Carousel opts={{ align: 'start', loop: true }} className="w-full">
+            <CarouselContent className="-ml-4">
+              {STEPS.map((step, i) => (
+                <CarouselItem key={step.title} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/4">
+                  <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 h-full flex flex-col items-center text-center hover:border-purple-500/40 transition-colors">
+                    <div className="w-14 h-14 rounded-xl bg-purple-600/20 flex items-center justify-center mb-4">
+                      <step.icon className="w-7 h-7 text-purple-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-white mb-2">{step.title}</h3>
+                    <p className="text-gray-500 text-sm mb-4">{step.desc}</p>
+                    <a
+                      href={BOT_LINK}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 font-medium text-base mt-auto"
+                    >
+                      <ExternalLink className="w-4 h-4 shrink-0" />
+                      Open Bot
+                    </a>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="left-0 border-zinc-700 bg-zinc-900 text-white hover:bg-zinc-800 hover:text-white" />
+            <CarouselNext className="right-0 border-zinc-700 bg-zinc-900 text-white hover:bg-zinc-800 hover:text-white" />
+          </Carousel>
+        </motion.div>
 
         <motion.div
           initial={{ opacity: 0 }}
