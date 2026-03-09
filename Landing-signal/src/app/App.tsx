@@ -1,12 +1,10 @@
 import { Hero } from '@/app/components/Hero';
 import { BotAnalysisSection } from '@/app/components/BotAnalysisSection';
-import { WhyUs } from '@/app/components/WhyUs';
-import { Features } from '@/app/components/Features';
+import { MarketEvolutionSection } from '@/app/components/MarketEvolutionSection';
 import { TradingTabs } from '@/app/components/TradingTabs';
 import { BotScreenshotsSection } from '@/app/components/BotScreenshotsSection';
 import { Testimonials } from '@/app/components/Testimonials';
 import { Pricing } from '@/app/components/Pricing';
-import { BonusSection } from '@/app/components/BonusSection';
 import { Footer } from '@/app/components/Footer';
 import { FloatingTicker } from '@/app/components/FloatingTicker';
 import { BonusFloatingButton } from '@/app/components/BonusFloatingButton';
@@ -19,13 +17,11 @@ export default function App() {
       <div className="pt-12">
         <Hero />
         <BotAnalysisSection />
-        <WhyUs />
-        <Features />
         <TradingTabs />
+        <MarketEvolutionSection />
         <BotScreenshotsSection />
         <Testimonials />
         <Pricing />
-        <BonusSection />
         <Footer />
       </div>
     </div>

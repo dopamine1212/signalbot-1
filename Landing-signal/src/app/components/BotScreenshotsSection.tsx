@@ -1,73 +1,63 @@
 import { motion } from 'motion/react';
 import { ExternalLink, Send } from 'lucide-react';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/app/components/ui/carousel';
 
-const BOT_LINK = 'https://t.me/futures_signalfast_bot';
+const FUTURES_BOT_LINK = 'https://t.me/futures_signalfast_bot';
+const CHANNEL_LINK = 'https://t.me/SaawyerCrypto';
+const PROOF_LINK = 'https://t.me/futuresreviewsTom';
+const BONUS_BOT_LINK = 'https://t.me/GPTBonus_bot';
 
-const MESSAGES = [
-  { text: '📊 BTCUSDT Long 97.2k — 98.5k. SL 96.8k', out: false, time: '14:32' },
-  { text: 'Signal opened. Waiting for target.', out: true, time: '14:33' },
-  { text: '✅ Target hit +1.3%', out: false, time: '14:41' },
+const ECOSYSTEM_ITEMS = [
+  {
+    title: '1️⃣ AI Futures bot',
+    link: FUTURES_BOT_LINK,
+    desc: 'Automated futures signals',
+    points: [
+      'Whale and institutional activity analysis',
+      'Optimal entry and exit levels',
+    ],
+  },
+  {
+    title: '2️⃣ Trading channel',
+    link: CHANNEL_LINK,
+    desc: 'Live trading and market analysis',
+    points: [
+      'Instant signal notifications',
+      'Exclusive updates from the team',
+    ],
+  },
+  {
+    title: '3️⃣ Proof system',
+    link: PROOF_LINK,
+    desc: 'Verified signals and trade confirmations',
+    points: [
+      'Transparent performance statistics',
+      'Proof-based visibility for every user',
+    ],
+  },
 ];
 
-const SCREENSHOTS = [
-  {
-    title: 'Signal Feed',
-    desc: 'Long/Short with entry and stop levels',
-    placeholder: 'chart',
-  },
-  {
-    title: 'Trading Panel',
-    desc: 'Positions and trade history',
-    placeholder: 'trading',
-  },
-  {
-    title: 'Bot Analytics',
-    desc: 'Stats and win rate',
-    placeholder: 'stats',
-  },
-];
+const DEMO_SIGNAL = `#SIGNAL (MKR/USDT)
 
-function ScreenshotCard({
-  title,
-  desc,
-  placeholder,
-  index,
-}: {
-  title: string;
-  desc: string;
-  placeholder: string;
-  index: number;
-}) {
-  return (
-    <motion.a
-      href={BOT_LINK}
-      target="_blank"
-      rel="noopener noreferrer"
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.1 }}
-      className="group block rounded-xl border border-zinc-800 overflow-hidden bg-zinc-950 hover:border-purple-500/50 transition-all"
-    >
-      <div className="aspect-[4/3] bg-zinc-900 flex items-center justify-center relative">
-        <div className="w-16 h-16 rounded-xl bg-purple-600/20 flex items-center justify-center">
-          <span className="text-2xl text-purple-400">
-            {placeholder === 'chart' ? '📈' : placeholder === 'trading' ? '⚡' : '📊'}
-          </span>
-        </div>
-        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-          <span className="inline-flex items-center gap-1 text-xs text-purple-400 bg-black/60 px-2 py-1 rounded">
-            <ExternalLink className="w-3 h-3" /> Open bot
-          </span>
-        </div>
-      </div>
-      <div className="p-4">
-        <h3 className="font-semibold text-white mb-1">{title}</h3>
-        <p className="text-sm text-gray-500">{desc}</p>
-      </div>
-    </motion.a>
-  );
-}
+📉 Open SHORT ⛔️ at price between
+$2107.2 – $2130.5 with X25 leverage
+on OKX with 2% of your deposit
+
+Targets:
+
+1️⃣ Close the order at the price $2090.3
+2️⃣ Close the order at the price $2081.8
+3️⃣ Close the order at the price $2063.2
+4️⃣ Close the order at the price $2042.1
+5️⃣ Close the order at the price $2009.9
+
+❗️ STOP LOSS: $2200.3`;
 
 export function BotScreenshotsSection() {
   return (
@@ -78,78 +68,87 @@ export function BotScreenshotsSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-12"
+          className="text-center mb-10"
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#2aabee]/10 border border-[#2aabee]/30 mb-4">
             <Send className="w-4 h-4 text-[#2aabee]" />
-            <span className="text-sm text-[#2aabee]">All in One Bot</span>
+            <span className="text-sm text-[#2aabee]">🔹 Core ecosystem elements</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-3">
-            Bot Screenshots
+            Full TomSawyer ecosystem: your tools for profitable trading
           </h2>
-          <p className="text-gray-500 text-lg">
-            Click any card and open the bot in Telegram
+          <p className="text-gray-400 text-base sm:text-lg max-w-4xl mx-auto">
+            TomSawyer is not just a bot. It is a complete system that helps traders make decisions, track the market,
+            and receive real-time signals.
           </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="relative px-10 md:px-12 mb-10"
+        >
+          <Carousel opts={{ align: 'start', loop: true }} className="w-full">
+            <CarouselContent className="-ml-4">
+              {ECOSYSTEM_ITEMS.map((item) => (
+                <CarouselItem key={item.title} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
+                  <a
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block rounded-xl border border-zinc-800 bg-zinc-950 p-6 h-full hover:border-purple-500/50 transition-all"
+                  >
+                    <h3 className="text-xl font-semibold text-white mb-2">{item.title}</h3>
+                    <p className="text-gray-300 mb-3">{item.desc}</p>
+                    <ul className="space-y-2 text-sm text-gray-500 mb-4">
+                      {item.points.map((p) => (
+                        <li key={p}>• {p}</li>
+                      ))}
+                    </ul>
+                    <span className="inline-flex items-center gap-2 text-purple-400 font-medium">
+                      <ExternalLink className="w-4 h-4" />
+                      Open
+                    </span>
+                  </a>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="left-0 border-zinc-700 bg-zinc-900 text-white hover:bg-zinc-800 hover:text-white" />
+            <CarouselNext className="right-0 border-zinc-700 bg-zinc-900 text-white hover:bg-zinc-800 hover:text-white" />
+          </Carousel>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="rounded-2xl border border-zinc-800 overflow-hidden bg-[#1c1c24] shadow-2xl max-w-md mx-auto mb-10"
+          className="rounded-2xl border border-zinc-800 overflow-hidden bg-[#161622] shadow-2xl"
         >
-          <div className="flex items-center gap-3 px-4 py-3 bg-[#2aabee]/10 border-b border-zinc-800">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">TB</span>
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold text-white">Trading Bot</p>
-              <p className="text-xs text-gray-500">online</p>
-            </div>
+          <div className="px-5 py-4 border-b border-zinc-800 bg-zinc-900/70">
+            <h3 className="text-xl font-semibold text-white mb-1">4️⃣ Bonus tools & AI scanner</h3>
+            <p className="text-gray-400 text-sm">Extra analysis tools and AI scanner to validate your own strategies</p>
           </div>
-          <div className="p-4 space-y-3 min-h-[200px]">
-            {MESSAGES.map((msg, i) => (
-              <div key={i} className={`flex ${msg.out ? 'justify-end' : 'justify-start'}`}>
-                <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-2.5 ${
-                    msg.out ? 'bg-[#2aabee] text-white rounded-br-md' : 'bg-zinc-800 text-gray-100 rounded-bl-md'
-                  }`}
-                >
-                  <p className="text-sm">{msg.text}</p>
-                  <p className={`text-[10px] mt-1 ${msg.out ? 'text-blue-200' : 'text-gray-500'}`}>{msg.time}</p>
-                </div>
+
+          <div className="grid lg:grid-cols-2 gap-0">
+            <div className="p-5 border-b lg:border-b-0 lg:border-r border-zinc-800">
+              <div className="rounded-xl border border-zinc-700 bg-black/40 p-4 text-xs sm:text-sm text-gray-200 whitespace-pre-line leading-relaxed">
+                {DEMO_SIGNAL}
               </div>
-            ))}
+            </div>
+            <div className="p-5 flex flex-col justify-center bg-[radial-gradient(circle_at_top,_rgba(124,58,237,0.25),transparent_60%)]">
+              <p className="text-gray-300 mb-3">✅ Makes market structure easier to understand</p>
+              <p className="text-gray-400 mb-6">✅ Helps you validate ideas faster and confirm setups directly from charts</p>
+              <a
+                href={BONUS_BOT_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex w-fit items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-purple-500 text-white font-semibold hover:from-purple-500 hover:to-purple-400 transition-all"
+              >
+                🚀 Start using TomSawyer AI Bot
+              </a>
+            </div>
           </div>
-        </motion.div>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {SCREENSHOTS.map((s, i) => (
-            <ScreenshotCard
-              key={s.title}
-              title={s.title}
-              desc={s.desc}
-              placeholder={s.placeholder}
-              index={i}
-            />
-          ))}
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="text-center mt-8"
-        >
-          <a
-            href={BOT_LINK}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 font-medium"
-          >
-            <ExternalLink className="w-4 h-4" />
-            Open Bot
-          </a>
         </motion.div>
       </div>
     </section>

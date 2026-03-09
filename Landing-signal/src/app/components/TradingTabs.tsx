@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { TrendingUp, Zap, Target, BarChart3 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MagneticButton } from '@/app/components/MagneticButton';
 
@@ -10,65 +9,49 @@ export function TradingTabs() {
   const tabs = [
     {
       id: 0,
-      label: 'Futures Trading',
-      icon: TrendingUp,
-      title: 'Professional Futures Signals',
-      description: 'Leverage advanced AI to trade crypto futures with confidence. Our bot analyzes perpetual contracts, funding rates, and liquidation levels across all major exchanges.',
+      label: '1️⃣ Futures Trading',
+      title: 'Futures Trading',
+      description: 'Signals for active futures trading with built-in risk management.',
       features: [
-        'Real-time leverage tracking',
-        'Liquidation zone alerts',
-        'Funding rate optimization',
-        'Long/short ratio analysis',
-        'Multi-exchange coverage',
-        'Risk management tools'
+        'AI-powered entry and exit levels',
+        'Leverage and volatility-aware setup selection',
+        'Integrated with the TomSawyer Telegram ecosystem'
       ],
       stats: { accuracy: '87%', trades: '350+', profit: '156%' }
     },
     {
       id: 1,
-      label: 'Spot Signals',
-      icon: Target,
-      title: 'High-Precision Spot Trading',
-      description: 'Capture optimal entry and exit points for spot trading. Our AI identifies accumulation zones and distribution patterns used by institutional players.',
+      label: '2️⃣ Spot Signals',
+      title: 'Spot Signals',
+      description: 'Real signals for spot trading with fast entries and exits.',
       features: [
-        'Whale accumulation detection',
-        'Smart entry/exit points',
-        'Volume profile analysis',
-        'Order book monitoring',
-        'Exchange flow tracking',
-        'Portfolio rebalancing'
+        'Whale accumulation and distribution detection',
+        'Clear spot entry and exit zones',
+        'Built for traders who prefer no leverage'
       ],
       stats: { accuracy: '82%', trades: '420+', profit: '124%' }
     },
     {
       id: 2,
-      label: 'Scalping',
-      icon: Zap,
-      title: 'Lightning-Fast Scalp Trades',
-      description: 'Execute rapid-fire trades with millisecond precision. Perfect for aggressive traders looking to capitalize on micro-movements in volatile markets.',
+      label: '3️⃣ Scalping',
+      title: 'Scalping',
+      description: 'Short-term signals for quick profit opportunities.',
       features: [
-        'Sub-second signal delivery',
-        'High-frequency patterns',
-        'Spread optimization',
-        'Tick-level analysis',
-        'Low latency execution',
-        'Automated stop-loss'
+        'Fast intraday setups for active execution',
+        'Micro-movement signal logic',
+        'Made for high-frequency decision makers'
       ],
       stats: { accuracy: '79%', trades: '1200+', profit: '98%' }
     },
     {
       id: 3,
-      label: 'Swing Trading',
-      icon: BarChart3,
-      title: 'Strategic Swing Positions',
-      description: 'Hold positions for days or weeks to capture major trend reversals. Ideal for traders who prefer less frequent but higher-conviction trades.',
+      label: '4️⃣ Swing Trading',
+      title: 'Swing Trading',
+      description: 'Medium-term strategies to maximize profits in volatile markets.',
       features: [
-        'Multi-timeframe analysis',
-        'Trend reversal detection',
-        'Support/resistance mapping',
-        'Macro sentiment tracking',
-        'Position sizing guidance',
-        'Extended profit targets'
+        'Multi-day positions for bigger market moves',
+        'Trend reversal and continuation focus',
+        'Great for users who trade less often with higher conviction'
       ],
       stats: { accuracy: '91%', trades: '85+', profit: '203%' }
     }
@@ -114,8 +97,8 @@ export function TradingTabs() {
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#8b5cf605_1px,transparent_1px),linear-gradient(to_bottom,#8b5cf605_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_40%,transparent_100%)]"></div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div 
-          className="text-center mb-16"
+        <motion.div
+          className="text-center mb-8"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -129,21 +112,20 @@ export function TradingTabs() {
             transition={{ duration: 0.6 }}
           >
             <div className="px-4 py-2 rounded-full bg-purple-950/30 border border-purple-500/20 text-purple-300 text-sm">
-              Multiple Trading Strategies
+              🔹 Main trading styles
             </div>
           </motion.div>
-          <h2 className="text-4xl md:text-6xl font-bold mb-4 text-white">
-            Choose Your <span className="bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">Trading Style</span>
+          <h2 className="text-3xl md:text-5xl font-bold mb-3 text-white">
+            With TomSawyer you choose your trading style
           </h2>
-          <p className="text-xl text-gray-400">
-            Tailored strategies for every type of trader
+          <p className="text-base md:text-lg text-gray-400 max-w-3xl mx-auto">
+            Below are the core approaches - find the strategy that fits you best.
           </p>
         </motion.div>
 
-        {/* Enhanced Tab buttons with stagger animation */}
-        <div className="flex flex-wrap justify-center gap-4 mb-12">
+        {/* Compact tabs to reduce vertical space */}
+        <div className="flex flex-wrap justify-center gap-2 mb-6 max-w-3xl mx-auto">
           {tabs.map((tab, index) => {
-            const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
               <motion.div
@@ -155,7 +137,7 @@ export function TradingTabs() {
               >
                 <MagneticButton
                   onClick={() => handleTabChange(tab.id)}
-                  className={`relative px-8 py-4 rounded-xl font-semibold transition-all duration-500 flex items-center gap-3 overflow-hidden group ${
+                  className={`relative px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-500 flex items-center gap-2 overflow-hidden group ${
                     isActive
                       ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-xl shadow-purple-500/50'
                       : 'bg-zinc-900/50 text-gray-400 hover:bg-zinc-800 hover:text-white border border-zinc-800 hover:border-purple-500/30'
@@ -182,16 +164,7 @@ export function TradingTabs() {
                       />
                     </>
                   )}
-                  
-                  {/* Icon with rotation animation on hover */}
-                  <motion.div
-                    className="relative z-10"
-                    whileHover={{ rotate: isActive ? 0 : 360 }}
-                    transition={{ duration: 0.6 }}
-                  >
-                    <Icon className="w-5 h-5" />
-                  </motion.div>
-                  
+
                   <span className="relative z-10">{tab.label}</span>
 
                   {/* Hover glow effect for inactive tabs */}
@@ -319,7 +292,7 @@ export function TradingTabs() {
                         repeatDelay: 1,
                       }}
                     />
-                    <span className="relative z-10">Get Started with {activeContent.label}</span>
+                    <span className="relative z-10">🚀 Start using TomSawyer AI Bot</span>
                   </MagneticButton>
                 </motion.div>
               </div>
@@ -445,7 +418,7 @@ export function TradingTabs() {
                         }}
                       />
                       <div className="flex items-center gap-2 text-sm text-purple-300 relative z-10">
-                        <Zap className="w-4 h-4" />
+                        <span>⚡️</span>
                         <span>Live since January 2026</span>
                       </div>
                     </motion.div>

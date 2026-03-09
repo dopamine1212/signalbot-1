@@ -32,39 +32,39 @@ export function Testimonials() {
   ];
 
   return (
-    <section className="py-24 bg-black overflow-x-hidden">
+    <section className="py-14 md:py-16 bg-black overflow-x-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full max-w-[100vw] box-border">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="text-center mb-8"
         >
-          <h2 className="text-4xl md:text-6xl font-bold mb-4 text-white">
+          <h2 className="text-3xl md:text-5xl font-bold mb-3 text-white">
             Trusted by Professionals
           </h2>
-          <p className="text-xl text-gray-500">
+          <p className="text-base md:text-lg text-gray-500">
             Real traders, real results
           </p>
         </motion.div>
 
-        <div className="relative px-10 md:px-12 mb-16">
+        <div className="relative px-10 md:px-12 mb-8">
           <Carousel opts={{ align: 'start', loop: true }} className="w-full">
             <CarouselContent className="-ml-4">
               {testimonials.map((testimonial, index) => (
                 <CarouselItem key={index} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
-                  <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-8 h-full flex flex-col hover:border-purple-500/30 transition-all duration-300 min-h-[280px]">
-                    <div className="flex items-center gap-1 mb-4">
+                  <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 h-full flex flex-col hover:border-purple-500/30 transition-all duration-300 min-h-[245px]">
+                    <div className="flex items-center gap-1 mb-3">
                       {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="w-5 h-5 fill-purple-500 text-purple-500" />
+                        <Star key={i} className="w-4 h-4 fill-purple-500 text-purple-500" />
                       ))}
                     </div>
-                    <Quote className="w-8 h-8 text-purple-600/30 mb-4 shrink-0" />
-                    <p className="text-gray-400 leading-relaxed flex-1 min-h-0">
+                    <Quote className="w-6 h-6 text-purple-600/30 mb-3 shrink-0" />
+                    <p className="text-gray-400 text-sm leading-relaxed flex-1 min-h-0">
                       {testimonial.content}
                     </p>
-                    <div className="border-t border-zinc-800 pt-4 mt-4 shrink-0">
+                    <div className="border-t border-zinc-800 pt-3 mt-3 shrink-0">
                       <p className="font-semibold text-white">{testimonial.name}</p>
                       <p className="text-sm text-purple-400">{testimonial.role}</p>
                     </div>
@@ -82,29 +82,61 @@ export function Testimonials() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="text-center overflow-hidden"
+          className="text-center overflow-hidden mb-6"
         >
-          <div className="inline-flex flex-col sm:flex-row items-center gap-4 sm:gap-8 px-4 sm:px-8 py-6 bg-zinc-950 border border-zinc-800 rounded-2xl w-full max-w-full sm:w-auto box-border">
+          <div className="inline-flex flex-col sm:flex-row items-center gap-3 sm:gap-7 px-4 sm:px-7 py-4 bg-zinc-950 border border-zinc-800 rounded-2xl w-full max-w-full sm:w-auto box-border">
             <div className="text-center min-w-0">
-              <div className="text-4xl font-bold text-white mb-1">
+              <div className="text-3xl font-bold text-white mb-1">
                 <AnimatedCounter end={1000} suffix="+" />
               </div>
-              <div className="text-sm text-gray-500 uppercase tracking-wider whitespace-nowrap">Active Users</div>
+              <div className="text-xs text-gray-500 uppercase tracking-wider whitespace-nowrap">Active Users</div>
             </div>
             <div className="w-12 h-px sm:w-px sm:h-12 bg-zinc-800 shrink-0"></div>
             <div className="text-center min-w-0">
-              <div className="text-4xl font-bold text-white mb-1">
+              <div className="text-3xl font-bold text-white mb-1">
                 <AnimatedCounter end={4.9} decimals={1} suffix="★" />
               </div>
-              <div className="text-sm text-gray-500 uppercase tracking-wider whitespace-nowrap">Average Rating</div>
+              <div className="text-xs text-gray-500 uppercase tracking-wider whitespace-nowrap">Average Rating</div>
             </div>
             <div className="w-12 h-px sm:w-px sm:h-12 bg-zinc-800 shrink-0"></div>
             <div className="text-center min-w-0">
-              <div className="text-4xl font-bold text-white mb-1">
+              <div className="text-3xl font-bold text-white mb-1">
                 <AnimatedCounter end={98} suffix="%" />
               </div>
-              <div className="text-sm text-gray-500 uppercase tracking-wider whitespace-nowrap">Satisfaction</div>
+              <div className="text-xs text-gray-500 uppercase tracking-wider whitespace-nowrap">Satisfaction</div>
             </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="grid md:grid-cols-3 gap-3"
+        >
+          <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
+            <p className="text-xs text-gray-500 mb-2">Chart Snapshot</p>
+            <div className="h-14 rounded-lg bg-zinc-900/80 border border-zinc-800 flex items-end gap-1 px-2 py-2">
+              <div className="w-2 h-3 bg-purple-500/70 rounded-sm"></div>
+              <div className="w-2 h-5 bg-purple-500/80 rounded-sm"></div>
+              <div className="w-2 h-4 bg-purple-500/70 rounded-sm"></div>
+              <div className="w-2 h-8 bg-purple-400 rounded-sm"></div>
+              <div className="w-2 h-6 bg-purple-500/80 rounded-sm"></div>
+              <div className="w-2 h-10 bg-purple-400 rounded-sm"></div>
+              <div className="w-2 h-7 bg-purple-500/80 rounded-sm"></div>
+            </div>
+          </div>
+          <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
+            <p className="text-xs text-gray-500 mb-2">Signal Preview</p>
+            <p className="text-xs text-gray-300 leading-relaxed">
+              #SIGNAL BTC/USDT • LONG • Entry 97.2k - 98.5k • SL 96.8k
+            </p>
+          </div>
+          <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
+            <p className="text-xs text-gray-500 mb-2">Trade Stats</p>
+            <p className="text-sm text-white font-semibold">+156% Average Cycle</p>
+            <p className="text-xs text-gray-400">Win rate: 87% • Signals: 350+</p>
           </div>
         </motion.div>
       </div>

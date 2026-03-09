@@ -2,6 +2,7 @@ import React from 'react';
 import { Check, Zap } from 'lucide-react';
 import { motion } from 'motion/react';
 import { MagneticButton } from '@/app/components/MagneticButton';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/app/components/ui/carousel';
 
 const PLANS = [
   {
@@ -46,48 +47,55 @@ export function Pricing() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-12"
+          className="text-center mb-8"
         >
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 text-white">
-            Transparent Pricing
+            Unlock the full TomSawyer ecosystem
           </h2>
           <p className="text-base sm:text-lg text-gray-500">
             $24 / month · $100 / 6 months · $200 / year
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          {PLANS.map((plan, index) => (
+        <div className="relative px-10 md:px-12 max-w-5xl mx-auto">
+          <Carousel opts={{ align: 'start', loop: true }} className="w-full">
+            <CarouselContent className="-ml-4">
+              {PLANS.map((plan, index) => (
+                <CarouselItem key={plan.name} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
             <motion.div
               key={plan.name}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className={`relative rounded-2xl border p-6 md:p-8 flex flex-col ${
+              className={`relative rounded-2xl border p-5 md:p-6 flex flex-col h-full ${
                 plan.popular
                   ? 'bg-gradient-to-br from-zinc-950 to-black border-purple-500/50 shadow-lg shadow-purple-500/20'
                   : 'bg-zinc-950/80 border-zinc-800'
               }`}
             >
               {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
-                  <div className="px-3 py-1 sm:px-4 sm:py-1.5 bg-gradient-to-r from-purple-600 to-purple-500 rounded-full flex items-center gap-1.5 shadow-lg shadow-purple-500/50">
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20">
+                  <div className="px-3 py-1 bg-purple-600/90 border border-purple-400/60 rounded-full flex items-center gap-1.5 shadow-md shadow-purple-900/40 backdrop-blur-sm">
                     <Zap className="w-3 h-3 text-white" />
-                    <span className="text-white font-semibold text-[10px] sm:text-xs whitespace-nowrap">MOST POPULAR</span>
+                    <span className="text-white font-semibold text-[10px] sm:text-xs tracking-wide whitespace-nowrap">MOST POPULAR</span>
                   </div>
                 </div>
               )}
               {plan.save && (
-                <span className="absolute top-4 right-4 text-xs font-medium text-green-400 bg-green-500/10 px-2 py-0.5 rounded">
+                <span
+                  className={`absolute right-4 text-xs font-medium text-green-400 bg-green-500/10 px-2 py-0.5 rounded ${
+                    plan.popular ? 'top-10' : 'top-4'
+                  }`}
+                >
                   {plan.save}
                 </span>
               )}
-              <div className="pt-2">
+              <div className={`${plan.popular ? 'pt-8' : 'pt-2'}`}>
                 <h3 className="text-lg font-semibold text-white mb-1">{plan.name}</h3>
                 <p className="text-gray-500 text-sm mb-4">{plan.description}</p>
                 <div className="flex items-baseline gap-1 mb-4">
-                  <span className="text-4xl md:text-5xl font-bold text-white">${plan.price}</span>
+                  <span className="text-3xl md:text-4xl font-bold text-white">${plan.price}</span>
                   <span className="text-gray-500">{plan.period}</span>
                 </div>
                 <ul className="space-y-2.5 mb-6">
@@ -110,7 +118,12 @@ export function Pricing() {
                 </MagneticButton>
               </div>
             </motion.div>
-          ))}
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="left-0 border-zinc-700 bg-zinc-900 text-white hover:bg-zinc-800 hover:text-white" />
+            <CarouselNext className="right-0 border-zinc-700 bg-zinc-900 text-white hover:bg-zinc-800 hover:text-white" />
+          </Carousel>
         </div>
 
         <motion.p

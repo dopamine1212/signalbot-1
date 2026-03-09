@@ -71,6 +71,19 @@ export function MagneticButton({ children, className = '', onClick, href }: Magn
     );
   }
 
+  if (href && href.startsWith('http')) {
+    return (
+      <motion.a
+        {...motionProps}
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {children}
+      </motion.a>
+    );
+  }
+
   return (
     <motion.button
       {...motionProps}
