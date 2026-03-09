@@ -49,3 +49,7 @@ Thumbs.db
 
 
 Landing-signal/node_modules/
+
+# Разрешаем коммитить готовую сборку лендинга (на сервере nginx смотрит в /var/www/lending)
+!Landing-signal/dist/
+!Landing-signal/dist/**
