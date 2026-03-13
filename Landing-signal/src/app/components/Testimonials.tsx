@@ -113,30 +113,25 @@ export function Testimonials() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="grid md:grid-cols-3 gap-3"
+          className="mt-10"
         >
-          <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
-            <p className="text-xs text-gray-500 mb-2">Chart Snapshot</p>
-            <div className="h-14 rounded-lg bg-zinc-900/80 border border-zinc-800 flex items-end gap-1 px-2 py-2">
-              <div className="w-2 h-3 bg-purple-500/70 rounded-sm"></div>
-              <div className="w-2 h-5 bg-purple-500/80 rounded-sm"></div>
-              <div className="w-2 h-4 bg-purple-500/70 rounded-sm"></div>
-              <div className="w-2 h-8 bg-purple-400 rounded-sm"></div>
-              <div className="w-2 h-6 bg-purple-500/80 rounded-sm"></div>
-              <div className="w-2 h-10 bg-purple-400 rounded-sm"></div>
-              <div className="w-2 h-7 bg-purple-500/80 rounded-sm"></div>
-            </div>
-          </div>
-          <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
-            <p className="text-xs text-gray-500 mb-2">Signal Preview</p>
-            <p className="text-xs text-gray-300 leading-relaxed">
-              #SIGNAL BTC/USDT • LONG • Entry 97.2k - 98.5k • SL 96.8k
-            </p>
-          </div>
-          <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
-            <p className="text-xs text-gray-500 mb-2">Trade Stats</p>
-            <p className="text-sm text-white font-semibold">+156% Average Cycle</p>
-            <p className="text-xs text-gray-400">Win rate: 87% • Signals: 350+</p>
+          <h3 className="text-xl md:text-2xl font-bold text-white text-center mb-6">
+            Start with us for stable results
+          </h3>
+          <div className="relative px-10 md:px-12">
+            <Carousel opts={{ align: 'start', loop: true }} className="w-full">
+              <CarouselContent className="-ml-4">
+                {['/images/trade-1.png', '/images/trade-2.png', '/images/trade-3.png', '/images/trade-4.png', '/images/trade-5.png'].map((src, index) => (
+                  <CarouselItem key={index} className="pl-4 basis-full sm:basis-2/3 md:basis-1/2 lg:basis-1/3">
+                    <div className="rounded-xl border border-zinc-800 bg-zinc-950 overflow-hidden">
+                      <img src={src} alt={`Trade result ${index + 1}`} className="w-full h-auto object-contain" />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="left-0 border-zinc-700 bg-zinc-900 text-white hover:bg-zinc-800 hover:text-white" />
+              <CarouselNext className="right-0 border-zinc-700 bg-zinc-900 text-white hover:bg-zinc-800 hover:text-white" />
+            </Carousel>
           </div>
         </motion.div>
       </div>

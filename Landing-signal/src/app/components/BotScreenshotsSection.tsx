@@ -43,22 +43,6 @@ const ECOSYSTEM_ITEMS = [
   },
 ];
 
-const DEMO_SIGNAL = `#SIGNAL (MKR/USDT)
-
-📉 Open SHORT ⛔️ at price between
-$2107.2 – $2130.5 with X25 leverage
-on OKX with 2% of your deposit
-
-Targets:
-
-1️⃣ Close the order at the price $2090.3
-2️⃣ Close the order at the price $2081.8
-3️⃣ Close the order at the price $2063.2
-4️⃣ Close the order at the price $2042.1
-5️⃣ Close the order at the price $2009.9
-
-❗️ STOP LOSS: $2200.3`;
-
 export function BotScreenshotsSection() {
   return (
     <section className="py-16 md:py-20 bg-black relative overflow-hidden">
@@ -72,7 +56,7 @@ export function BotScreenshotsSection() {
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#2aabee]/10 border border-[#2aabee]/30 mb-4">
             <Send className="w-4 h-4 text-[#2aabee]" />
-            <span className="text-sm text-[#2aabee]">🔹 Core ecosystem elements</span>
+            <span className="text-sm text-[#2aabee]">Core ecosystem elements</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-3">
             Full TomSawyer ecosystem: your tools for profitable trading
@@ -131,14 +115,13 @@ export function BotScreenshotsSection() {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-0">
-            <div className="p-5 border-b lg:border-b-0 lg:border-r border-zinc-800">
-              <div className="rounded-xl border border-zinc-700 bg-black/40 p-4 text-xs sm:text-sm text-gray-200 whitespace-pre-line leading-relaxed">
-                {DEMO_SIGNAL}
-              </div>
+            <div className="p-5 border-b lg:border-b-0 lg:border-r border-zinc-800 flex items-center justify-center">
+              <img src="/images/chart-analysis-screenshot.png" alt="Chart Analysis" className="rounded-xl border border-zinc-700 w-full max-w-sm h-auto object-contain shadow-lg" />
             </div>
-            <div className="p-5 flex flex-col justify-center bg-[radial-gradient(circle_at_top,_rgba(124,58,237,0.25),transparent_60%)]">
-              <p className="text-gray-300 mb-3">✅ Makes market structure easier to understand</p>
-              <p className="text-gray-400 mb-6">✅ Helps you validate ideas faster and confirm setups directly from charts</p>
+            <div className="p-5 flex flex-col justify-center bg-[radial-gradient(circle_at_top,_rgba(124,58,237,0.25),transparent_60%)] relative">
+              <img src="/images/raccoon.png" alt="" className="absolute top-4 right-4 w-16 h-16 object-contain opacity-90" />
+              <p className="text-gray-300 mb-2 text-sm">✅ Makes market structure easier to understand</p>
+              <p className="text-gray-400 mb-4 text-sm">✅ Helps you validate ideas faster and confirm setups directly from charts</p>
               <a
                 href={BONUS_BOT_LINK}
                 target="_blank"

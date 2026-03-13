@@ -98,23 +98,12 @@ export function TradingTabs() {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
-          className="text-center mb-8"
+          className="text-center mb-6"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
         >
-          <motion.div
-            className="inline-block mb-4"
-            initial={{ opacity: 0, scale: 0.5 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="px-4 py-2 rounded-full bg-purple-950/30 border border-purple-500/20 text-purple-300 text-sm">
-              🔹 Main trading styles
-            </div>
-          </motion.div>
           <h2 className="text-3xl md:text-5xl font-bold mb-3 text-white">
             With TomSawyer you choose your trading style
           </h2>

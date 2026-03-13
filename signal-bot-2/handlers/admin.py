@@ -31,15 +31,18 @@ def _h(s: str) -> str:
 
 
 # Шаблоны сигналов SHORT/LONG. Переменные задаёт админ. Отправляются с parse_mode=HTML.
+# В начале #SIGNAL (ПАРА). Строка про OKX и % депозита убрана.
 def build_short_signal(
-    price_low: str, price_high: str, leverage: str, deposit_pct: str,
+    pair: str,
+    price_low: str, price_high: str, leverage: str,
     target1: str, target2: str, target3: str, target4: str, target5: str,
     stop_loss: str,
 ) -> str:
+    header = f"#SIGNAL ({_h(pair)})\n\n"
     return (
-        f"<tg-emoji emoji-id=\"5283224689395640696\">📉</tg-emoji> Open <b>SHORT</b> <tg-emoji emoji-id=\"5472265471610856247\">⛔️</tg-emoji> at price between\n"
-        f"${_h(price_low)} – ${_h(price_high)} with X{_h(leverage)} leverage\n"
-        f"on OKX with {_h(deposit_pct)}% of your deposit\n\n"
+        header
+        + f"<tg-emoji emoji-id=\"5283224689395640696\">📉</tg-emoji> Open <b>SHORT</b> <tg-emoji emoji-id=\"5472265471610856247\">⛔️</tg-emoji> at price between\n"
+        f"${_h(price_low)} – ${_h(price_high)} with X{_h(leverage)} leverage\n\n"
         f"Targets:\n\n"
         f"1️⃣ Close the order at the price ${_h(target1)}\n"
         f"2️⃣ Close the order at the price ${_h(target2)}\n"
@@ -51,14 +54,16 @@ def build_short_signal(
 
 
 def build_long_signal(
-    price_low: str, price_high: str, leverage: str, deposit_pct: str,
+    pair: str,
+    price_low: str, price_high: str, leverage: str,
     target1: str, target2: str, target3: str, target4: str, target5: str,
     stop_loss: str,
 ) -> str:
+    header = f"#SIGNAL ({_h(pair)})\n\n"
     return (
-        f"<tg-emoji emoji-id=\"5298952911173205130\">📈</tg-emoji> Open <b>LONG</b> <tg-emoji emoji-id=\"5438176453621457379\">🔠</tg-emoji> at price between\n"
-        f"${_h(price_low)} – ${_h(price_high)} with X{_h(leverage)} leverage\n"
-        f"on OKX with {_h(deposit_pct)}% of your deposit\n\n"
+        header
+        + f"<tg-emoji emoji-id=\"5298952911173205130\">📈</tg-emoji> Open <b>LONG</b> <tg-emoji emoji-id=\"5449660186853648911\">🔠</tg-emoji> at price between\n"
+        f"${_h(price_low)} – ${_h(price_high)} with X{_h(leverage)} leverage\n\n"
         f"Targets:\n\n"
         f"1️⃣ Close the order at the price ${_h(target1)}\n"
         f"2️⃣ Close the order at the price ${_h(target2)}\n"
@@ -424,10 +429,18 @@ async def process_signal_type(callback: CallbackQuery, state: FSMContext):
     await state.update_data(signal_type=signal_type)
     await state.set_state(SignalStates.waiting_for_signal_vars)
     await callback.message.answer(
-        "Отправьте одной строкой через пробел:\n"
-        "цена_мин цена_макс плечо %_депозита цель1 цель2 цель3 цель4 цель5 стоп_лосс\n\n"
-        "Пример:\n"
-        "2107.2 2130.5 25 2 2090.3 2081.8 2063.2 2042.1 2009.9 2200.34"
+        "Введите данные <b>с новой строки</b> (каждое значение — отдельная строка):\n\n"
+        "1. Пара (например MKR/USDT)\n"
+        "2. Цена мин\n"
+        "3. Цена макс\n"
+        "4. Плечо\n"
+        "5. Цель 1\n"
+        "6. Цель 2\n"
+        "7. Цель 3\n"
+        "8. Цель 4\n"
+        "9. Цель 5\n"
+        "10. Стоп-лосс",
+        parse_mode="HTML",
     )
 
 
@@ -437,27 +450,29 @@ async def process_signal_vars(message: Message, state: FSMContext):
         await state.clear()
         await message.answer("❌ Signal sending cancelled")
         return
-    parts = message.text.strip().split()
+    # Ввод с новой строки: каждое значение — отдельная строка
+    parts = [line.strip() for line in message.text.strip().splitlines() if line.strip()]
     if len(parts) != 10:
         await message.answer(
-            "⚠️ Нужно 10 значений через пробел: цена_мин цена_макс плечо %_депозита "
-            "цель1 цель2 цель3 цель4 цель5 стоп_лосс. Попробуйте снова."
+            "⚠️ Нужно 10 строк (каждое значение с новой строки):\n"
+            "пара, цена_мин, цена_макс, плечо, цель1, цель2, цель3, цель4, цель5, стоп_лосс.\n"
+            "Попробуйте снова."
         )
         return
     (
-        price_low, price_high, leverage, deposit_pct,
+        pair, price_low, price_high, leverage,
         target1, target2, target3, target4, target5, stop_loss
     ) = parts
     data = await state.get_data()
     signal_type = data.get("signal_type", "short")
     if signal_type == "long":
         text = build_long_signal(
-            price_low, price_high, leverage, deposit_pct,
+            pair, price_low, price_high, leverage,
             target1, target2, target3, target4, target5, stop_loss,
         )
     else:
         text = build_short_signal(
-            price_low, price_high, leverage, deposit_pct,
+            pair, price_low, price_high, leverage,
             target1, target2, target3, target4, target5, stop_loss,
         )
     await state.update_data(text=text)

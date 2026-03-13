@@ -1,12 +1,14 @@
 """
 Обработчики платежей
 """
+import html
 import logging
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import Command
 from database import get_db, PaymentStatus
 from services import UserService, CryptoPaymentService
+from handlers.start import _PROTECTED_PAYMENT_MESSAGE
 
 logger = logging.getLogger(__name__)
 
@@ -59,22 +61,20 @@ async def process_payment(callback: CallbackQuery):
     # НЕ записываем в БД сразу - только после успешной оплаты
     # Сначала показываем пользователю ссылку для оплаты
     
-    # Отправляем сообщение с инструкцией и ссылкой
-    text = f"""💳 *Payment for {amount} USD created!*
-
-⏰ *Payment time: 5 minutes*
-
-Click the button below to pay:
-
-*Invoice ID:* `{invoice_id}`
-"""
-    
+    # Отправляем сообщение с инструкцией и ссылкой (HTML)
+    text = (
+        f"<tg-emoji emoji-id=\"5224257782013769471\">💳</tg-emoji> <b>Payment for {amount} USD created!</b>\n\n"
+        f"<tg-emoji emoji-id=\"5348289410955754971\">⏰</tg-emoji> <b>Payment time: 5 minutes</b>\n\n"
+        "Click the button below to pay:\n\n"
+        f"<b>Invoice ID:</b> <code>{html.escape(str(invoice_id))}</code>"
+    )
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="💳 Pay via Crypto Bot", url=bot_invoice_url)],
-        [InlineKeyboardButton(text="🔄 Check status", callback_data=f"check_invoice_{invoice_id}")]
+        [InlineKeyboardButton(icon_custom_emoji_id="5337082660164475701", text="Pay via Crypto Bot", style="success", url=bot_invoice_url),],
+        [InlineKeyboardButton(icon_custom_emoji_id="5465368548702446780", text="Check status", style="primary", callback_data=f"check_invoice_{invoice_id}")]
     ])
-    
-    await callback.message.answer(text, reply_markup=keyboard)
+    sent = await callback.message.answer(text, reply_markup=keyboard, parse_mode="HTML")
+    # Сообщение с инвойсом не удаляем при переключении на Main menu / choose a subscription / BONUS
+    _PROTECTED_PAYMENT_MESSAGE[callback.message.chat.id] = sent.message_id
     
     await callback.answer()
 

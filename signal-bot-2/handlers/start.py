@@ -44,7 +44,7 @@ def get_start_keyboard() -> InlineKeyboardMarkup:
     """«Check subscription» button under the welcome message."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(icon_custom_emoji_id="5264727218734524899",text="Check subscription", style="primary", callback_data="check_subscription")]
+            [InlineKeyboardButton(icon_custom_emoji_id="5465368548702446780",text="Check subscription", style="primary", callback_data="check_subscription")]
         ]
     )
 
@@ -64,7 +64,7 @@ async def cmd_start(message: Message):
     if not premium:
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
-                [InlineKeyboardButton(icon_custom_emoji_id="5264727218734524899",text="Check subscription", style="primary", callback_data="check_subscription")],
+                [InlineKeyboardButton(icon_custom_emoji_id="5465368548702446780",text="Check subscription", style="primary", callback_data="check_subscription")],
                 [InlineKeyboardButton(icon_custom_emoji_id="5465226866321268133",text="Go to main menu", url=MAIN_MENU_BOT_URL, style="primary")],
             ]
         )

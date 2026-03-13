@@ -9,9 +9,25 @@ from services import UserService
 from config import settings
 
 router = Router()
-_LAST_MAIN_MENU_MESSAGES: dict[int, int] = {}
-_LAST_SUBSCRIPTION_MESSAGES: dict[int, int] = {}
-_LAST_BONUS_MESSAGES: dict[int, int] = {}
+# Один последний ответ бота — при любом новом действии удаляем его, чтобы в чате не копился мусор
+_LAST_BOT_MESSAGE: dict[int, int] = {}  # chat_id -> message_id
+# Сообщение с инвойсом не удаляем — пользователь должен видеть кнопку оплаты
+_PROTECTED_PAYMENT_MESSAGE: dict[int, int] = {}  # chat_id -> message_id
+
+
+def _is_protected_payment_message(chat_id: int, message_id: int) -> bool:
+    return _PROTECTED_PAYMENT_MESSAGE.get(chat_id) == message_id
+
+
+async def _delete_previous_bot_message(chat_id: int, bot) -> None:
+    """Удаляет последнее сообщение бота в чате (кроме инвойса), чтобы не захламлять чат."""
+    last_id = _LAST_BOT_MESSAGE.get(chat_id)
+    if not last_id or _is_protected_payment_message(chat_id, last_id):
+        return
+    try:
+        await bot.delete_message(chat_id=chat_id, message_id=last_id)
+    except Exception:
+        pass
 
 
 def get_main_keyboard() -> ReplyKeyboardMarkup:
@@ -20,7 +36,7 @@ def get_main_keyboard() -> ReplyKeyboardMarkup:
         keyboard=[
             [KeyboardButton(text="Main menu",icon_custom_emoji_id="5197269100878907942",style='primary')],
             [KeyboardButton(text="choose a subscription",icon_custom_emoji_id="5372980108493596586",style='primary')],
-            [KeyboardButton(text="BONUS",icon_custom_emoji_id="5390823932376915757",style='primary')],
+            [KeyboardButton(text="BONUS SCANNER",icon_custom_emoji_id="5390823932376915757",style='primary')],
         ],
         resize_keyboard=True,
         input_field_placeholder="Choose an action..."
@@ -128,35 +144,25 @@ async def cmd_start(message: Message):
 async def main_menu(message: Message):
     """Главное меню: текст и инлайн-кнопки со ссылками (Trading cabinet, Why us, Reviews, Support)"""
     chat_id = message.chat.id
-
-    # Удаляем предыдущее сообщение главного меню, чтобы не плодить дубликаты
-    last_msg_id = _LAST_MAIN_MENU_MESSAGES.get(chat_id)
-    if last_msg_id:
-        try:
-            await message.bot.delete_message(chat_id=chat_id, message_id=last_msg_id)
-        except Exception:
-            pass
-
-    # По возможности удаляем служебное сообщение пользователя "Main menu"
+    await _delete_previous_bot_message(chat_id, message.bot)
     try:
         await message.delete()
     except Exception:
         pass
-
     sent = await message.bot.send_message(
         chat_id=chat_id,
         text=MAIN_MENU_TEXT,
         reply_markup=get_main_menu_links_keyboard(),
         parse_mode="HTML",
     )
-    _LAST_MAIN_MENU_MESSAGES[chat_id] = sent.message_id
+    _LAST_BOT_MESSAGE[chat_id] = sent.message_id
 
 
 @router.callback_query(F.data == "eco_system")
 async def cb_eco_system(callback: CallbackQuery):
     """Экосистема (Trading cabinet): текст + кнопки с торговыми ботами."""
     await callback.answer()
-    # Удаляем предыдущее сообщение "Main menu" с инлайн-кнопками
+    chat_id = callback.message.chat.id
     try:
         await callback.message.delete()
     except Exception:
@@ -164,46 +170,37 @@ async def cb_eco_system(callback: CallbackQuery):
     text = (
         "<tg-emoji emoji-id=\"5359594091296335780\">🤖</tg-emoji><b> Trading cabinet ecosystem</b>\n\n"
     )
-    await callback.message.answer(text, reply_markup=get_ecosystem_keyboard(), parse_mode="HTML")
+    sent = await callback.message.answer(text, reply_markup=get_ecosystem_keyboard(), parse_mode="HTML")
+    _LAST_BOT_MESSAGE[chat_id] = sent.message_id
 
 
 @router.callback_query(F.data == "back_main_menu")
 async def cb_back_main_menu(callback: CallbackQuery):
     await callback.answer()
-    # Удаляем сообщение экосистемы перед возвратом в главное меню
+    chat_id = callback.message.chat.id
     try:
         await callback.message.delete()
     except Exception:
         pass
-    await callback.message.answer(MAIN_MENU_TEXT, reply_markup=get_main_menu_links_keyboard(), parse_mode="HTML")
+    sent = await callback.message.answer(MAIN_MENU_TEXT, reply_markup=get_main_menu_links_keyboard(), parse_mode="HTML")
+    _LAST_BOT_MESSAGE[chat_id] = sent.message_id
 
 
 @router.message(lambda message: message.text == "choose a subscription")
 async def buy_subscription(message: Message):
     """📈 choose a subscription — актуальный баланс и 3 тарифа: $24/мес, $100/6 мес, $200/год"""
     chat_id = message.chat.id
-
-    # Удаляем предыдущее сообщение с тарифами в этом чате
-    last_msg_id = _LAST_SUBSCRIPTION_MESSAGES.get(chat_id)
-    if last_msg_id:
-        try:
-            await message.bot.delete_message(chat_id=chat_id, message_id=last_msg_id)
-        except Exception:
-            pass
-
-    # Пытаемся удалить сообщение пользователя "choose a subscription"
+    await _delete_previous_bot_message(chat_id, message.bot)
     try:
         await message.delete()
     except Exception:
         pass
-
     user = UserService.get_user_by_telegram_id(message.from_user.id)
     balance = float(user["balance"]) if user else 0.0
-
     text = (
-        f"📈 Choose a subscription\n\n"
-        f"💰 Your balance: {balance:.2f} USD\n\n"
-        f"Select a plan:"
+        f"<tg-emoji emoji-id=\"5429651785352501917\">📈</tg-emoji><b> Choose a subscription</b>\n\n"
+        f"<tg-emoji emoji-id=\"5224257782013769471\">💰</tg-emoji> Your balance: {balance:.2f} USD\n\n"
+        f"<b>Select a plan:</b>"
     )
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="$24 | month", callback_data="pay_24", style='danger')],
@@ -216,31 +213,21 @@ async def buy_subscription(message: Message):
         reply_markup=keyboard,
         parse_mode="HTML",
     )
-    _LAST_SUBSCRIPTION_MESSAGES[chat_id] = sent.message_id
+    _LAST_BOT_MESSAGE[chat_id] = sent.message_id
 
 
 GPT_BONUS_BOT_LINK = "https://t.me/GPTBonus_bot"
 
 
-@router.message(lambda message: message.text == "BONUS")
+@router.message(lambda message: message.text == "BONUS SCANNER")
 async def bonus(message: Message):
     """Bonus: текст про AI Scanner + цветная кнопка в бонус-бота."""
     chat_id = message.chat.id
-
-    # Стараемся не создавать «мусор»: удаляем предыдущее бонус-сообщение, если оно было
-    last_msg_id = _LAST_BONUS_MESSAGES.get(chat_id)
-    if last_msg_id:
-        try:
-            await message.bot.delete_message(chat_id=chat_id, message_id=last_msg_id)
-        except Exception:
-            pass
-
-    # По возможности удаляем служебное сообщение пользователя с текстом BONUS
+    await _delete_previous_bot_message(chat_id, message.bot)
     try:
         await message.delete()
     except Exception:
         pass
-
     text = (
         "<b><tg-emoji emoji-id=\"5474638166163988906\">🤖</tg-emoji> TomSawyer AI Scanner</b>\n\n"
         "AI chart analysis tool for traders\n\n"
@@ -249,5 +236,5 @@ async def bonus(message: Message):
         [InlineKeyboardButton(icon_custom_emoji_id="5206473031110631274", text="AI Chart Scanner", url=GPT_BONUS_BOT_LINK, style="primary")],
     ])
     sent = await message.bot.send_message(chat_id=chat_id, text=text, reply_markup=keyboard, parse_mode="HTML")
-    _LAST_BONUS_MESSAGES[chat_id] = sent.message_id
+    _LAST_BOT_MESSAGE[chat_id] = sent.message_id
 

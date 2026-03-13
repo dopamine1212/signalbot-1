@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, Zap } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { motion } from 'motion/react';
 import { MagneticButton } from '@/app/components/MagneticButton';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/app/components/ui/carousel';
@@ -76,9 +76,9 @@ export function Pricing() {
             >
               {plan.popular && (
                 <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20">
-                  <div className="px-3 py-1 bg-purple-600/90 border border-purple-400/60 rounded-full flex items-center gap-1.5 shadow-md shadow-purple-900/40 backdrop-blur-sm">
-                    <Zap className="w-3 h-3 text-white" />
-                    <span className="text-white font-semibold text-[10px] sm:text-xs tracking-wide whitespace-nowrap">MOST POPULAR</span>
+                  <div className="px-3 py-1.5 bg-violet-800 border-2 border-violet-300 rounded-full flex items-center gap-1.5 shadow-lg shadow-violet-900/50">
+                    <span className="text-sm">⚡</span>
+                    <span className="text-white font-bold text-[11px] sm:text-xs tracking-wide whitespace-nowrap drop-shadow-sm">MOST POPULAR</span>
                   </div>
                 </div>
               )}

@@ -45,8 +45,8 @@ MSG_NOT_IMAGE = "<b><tg-emoji emoji-id=\"5017122105011995219\">❌</tg-emoji></b
 MSG_CHART_RECEIVED = """<b><tg-emoji emoji-id=\"5328194414323980905\">✅</tg-emoji></b> Chart received.
 
 <b><tg-emoji emoji-id=\"5874960879434338403\">🔎</tg-emoji></b> Analyzing the chart now…
-This may take a few seconds"""
 
+<b><tg-emoji emoji-id=\"5460664743469525674\">🦝</tg-emoji></b> Tom Sawyer: "The chart’s playful, but a sharp eye catches the moment!"""
 # 6. График плохого качества / GPT не понимает
 MSG_CANT_READ = """<b><tg-emoji emoji-id=\"5017122105011995219\">⚠️</tg-emoji></b> I can't read the chart clearly.
 Please send a clearer screenshot with:
@@ -205,6 +205,19 @@ async def on_document(message: Message) -> None:
     else:
         await message.answer(html.escape(result), parse_mode="HTML")
     await message.answer(MSG_ANOTHER_CHART, parse_mode="HTML")
+
+
+@dp.message(F.pinned_message)
+async def delete_pin_service_message(message: Message) -> None:
+    """
+    Удаляем сервисное уведомление «закрепил(а) сообщение»,
+    чтобы в чате оставался только закреплённый пост без лишнего сообщения.
+    """
+    try:
+        await message.delete()
+    except Exception:
+        # В личных чатах или при отсутствии прав можем просто игнорировать ошибку
+        pass
 
 
 @dp.message()
