@@ -6,6 +6,7 @@ import logging
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import Command
+from aiogram.exceptions import TelegramBadRequest
 from database import get_db, PaymentStatus
 from services import UserService, CryptoPaymentService
 from handlers.start import _PROTECTED_PAYMENT_MESSAGE, _LAST_BOT_MESSAGE
@@ -98,14 +99,20 @@ async def check_payment_status(callback: CallbackQuery):
     if not invoice_data:
         logger.warning(f"check_payment_status: no data for invoice_id={invoice_id}")
         await callback.message.answer("❌ Failed to check payment status.")
-        await callback.answer()
+        try:
+            await callback.answer()
+        except TelegramBadRequest:
+            pass
         return
     
     status = invoice_data.get("status")
     logger.info(f"Invoice {invoice_id} status={status}, payload={invoice_data.get('payload')}")
     
     if status == "paid":
-        await callback.answer()
+        try:
+            await callback.answer()
+        except TelegramBadRequest:
+            pass
         # Платеж выполнен - записываем в БД
         conn = get_db()
         cursor = conn.cursor()
@@ -198,11 +205,23 @@ async def check_payment_status(callback: CallbackQuery):
                 await callback.message.answer("✅ Payment completed, but user not found in bot. Write /start and try again.")
     
     elif status == "active":
-        await callback.answer("⏳ Payment is pending...\n\n⏰ You have 5 minutes to pay.")
+        _text = "⏳ Payment is pending...\n\n⏰ You have 5 minutes to pay."
+        try:
+            await callback.answer(_text, show_alert=True)
+        except TelegramBadRequest:
+            await callback.message.answer(_text)
     
     elif status == "expired":
-        await callback.answer("❌ Payment expired. Create a new payment.")
+        _text = "❌ Payment expired. Create a new payment."
+        try:
+            await callback.answer(_text, show_alert=True)
+        except TelegramBadRequest:
+            await callback.message.answer(_text)
     
     else:
-        await callback.answer(f"⏳ Payment status: {status}")
+        _text = f"⏳ Payment status: {status}"
+        try:
+            await callback.answer(_text, show_alert=True)
+        except TelegramBadRequest:
+            await callback.message.answer(_text)
 
