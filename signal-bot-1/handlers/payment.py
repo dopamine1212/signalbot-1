@@ -105,6 +105,7 @@ async def check_payment_status(callback: CallbackQuery):
     logger.info(f"Invoice {invoice_id} status={status}, payload={invoice_data.get('payload')}")
     
     if status == "paid":
+        await callback.answer()
         # Платеж выполнен - записываем в БД
         conn = get_db()
         cursor = conn.cursor()
@@ -197,13 +198,11 @@ async def check_payment_status(callback: CallbackQuery):
                 await callback.message.answer("✅ Payment completed, but user not found in bot. Write /start and try again.")
     
     elif status == "active":
-        await callback.message.answer("⏳ Payment is pending...\n\n⏰ You have 5 minutes to pay.")
+        await callback.answer("⏳ Payment is pending...\n\n⏰ You have 5 minutes to pay.")
     
     elif status == "expired":
-        await callback.message.answer("❌ Payment expired. Create a new payment.")
+        await callback.answer("❌ Payment expired. Create a new payment.")
     
     else:
-        await callback.message.answer(f"⏳ Payment status: {status}")
-    
-    await callback.answer()
+        await callback.answer(f"⏳ Payment status: {status}")
 
