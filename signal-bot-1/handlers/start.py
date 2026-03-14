@@ -9,9 +9,8 @@ from services import UserService
 from config import settings
 
 router = Router()
-# Один последний ответ бота — при любом новом действии удаляем его, чтобы в чате не копился мусор
+# Последнее контентное сообщение бота — при новом действии удаляем только его. Сообщение с reply-клавиатурой никогда не удаляем.
 _LAST_BOT_MESSAGE: dict[int, int] = {}  # chat_id -> message_id
-_LAST_KEYBOARD_MESSAGE: dict[int, int] = {}  # служебное сообщение с главным меню под строкой ввода
 # Сообщение с инвойсом не удаляем — пользователь должен видеть кнопку оплаты
 _PROTECTED_PAYMENT_MESSAGE: dict[int, int] = {}  # chat_id -> message_id
 
@@ -21,29 +20,13 @@ def _is_protected_payment_message(chat_id: int, message_id: int) -> bool:
 
 
 async def _delete_previous_bot_message(chat_id: int, bot) -> None:
-    """Удаляет последнее контентное сообщение бота (кроме инвойса). Сообщение с reply-клавиатурой не удаляем — кнопки TRADING BOT / choose a subscription / BONUS SCANNER должны всегда оставаться."""
+    """Удаляет только последнее контентное сообщение (кроме инвойса). Сообщение с reply-клавиатурой не трогаем — кнопки TRADING BOT / choose a subscription / BONUS SCANNER не убираются никогда."""
     last_id = _LAST_BOT_MESSAGE.get(chat_id)
     if last_id and not _is_protected_payment_message(chat_id, last_id):
         try:
             await bot.delete_message(chat_id=chat_id, message_id=last_id)
         except Exception:
             pass
-    # Сообщение с reply_markup=get_main_keyboard() не удаляем — reply-кнопки должны никогда не пропадать
-
-
-async def _ensure_main_keyboard(bot, chat_id: int) -> None:
-    """Отправляет сообщение с reply-клавиатурой (TRADING BOT / choose a subscription / BONUS SCANNER). Предыдущее такое сообщение удаляем, чтобы в чате было только одно — кнопки под строкой ввода всегда на месте."""
-    try:
-        old_kbd_id = _LAST_KEYBOARD_MESSAGE.pop(chat_id, None)
-        if old_kbd_id:
-            try:
-                await bot.delete_message(chat_id=chat_id, message_id=old_kbd_id)
-            except Exception:
-                pass
-        sent = await bot.send_message(chat_id, "\u200b", reply_markup=get_main_keyboard())
-        _LAST_KEYBOARD_MESSAGE[chat_id] = sent.message_id
-    except Exception:
-        pass
 
 
 def get_main_keyboard() -> ReplyKeyboardMarkup:
@@ -147,14 +130,14 @@ async def cmd_start(message: Message):
     'As a result, you get instant, up-to-date signals with a high probability of playing out'
 )
 
-    await message.answer(welcome_message_3, parse_mode="HTML")
+    sent3 = await message.answer(welcome_message_3, parse_mode="HTML")
     await asyncio.sleep(1)
-       
+    # Удаляем только третье сообщение при следующем действии; четвертое (с клавиатурой) не удаляем никогда
+    _LAST_BOT_MESSAGE[message.chat.id] = sent3.message_id
+
     welcome_message_4 = (f"Trading with TomSawyer is a journey you go through together with the rest of the community\n\n"
     "When you make money - we make money too\n\n")
-
-    sent = await message.answer(welcome_message_4, parse_mode="HTML", reply_markup=get_main_keyboard())
-    _LAST_BOT_MESSAGE[message.chat.id] = sent.message_id
+    await message.answer(welcome_message_4, parse_mode="HTML", reply_markup=get_main_keyboard())
 
 
 
@@ -174,7 +157,6 @@ async def main_menu(message: Message):
         parse_mode="HTML",
     )
     _LAST_BOT_MESSAGE[chat_id] = sent.message_id
-    await _ensure_main_keyboard(message.bot, chat_id)
 
 
 @router.callback_query(F.data == "eco_system")
@@ -191,7 +173,6 @@ async def cb_eco_system(callback: CallbackQuery):
     )
     sent = await callback.message.answer(text, reply_markup=get_ecosystem_keyboard(), parse_mode="HTML")
     _LAST_BOT_MESSAGE[chat_id] = sent.message_id
-    await _ensure_main_keyboard(callback.message.bot, chat_id)
 
 
 @router.callback_query(F.data == "back_main_menu")
@@ -204,7 +185,6 @@ async def cb_back_main_menu(callback: CallbackQuery):
         pass
     sent = await callback.message.answer(MAIN_MENU_TEXT, reply_markup=get_main_menu_links_keyboard(), parse_mode="HTML")
     _LAST_BOT_MESSAGE[chat_id] = sent.message_id
-    await _ensure_main_keyboard(callback.message.bot, chat_id)
 
 
 @router.message(lambda message: message.text == "choose a subscription")
@@ -235,7 +215,6 @@ async def buy_subscription(message: Message):
         parse_mode="HTML",
     )
     _LAST_BOT_MESSAGE[chat_id] = sent.message_id
-    await _ensure_main_keyboard(message.bot, chat_id)
 
 
 GPT_BONUS_BOT_LINK = "https://t.me/TomSawyerHub_bot"
@@ -259,5 +238,4 @@ async def bonus(message: Message):
     ])
     sent = await message.bot.send_message(chat_id=chat_id, text=text, reply_markup=keyboard, parse_mode="HTML")
     _LAST_BOT_MESSAGE[chat_id] = sent.message_id
-    await _ensure_main_keyboard(message.bot, chat_id)
 

@@ -8,7 +8,7 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKe
 from aiogram.filters import Command
 from database import get_db, PaymentStatus
 from services import UserService, CryptoPaymentService
-from handlers.start import _PROTECTED_PAYMENT_MESSAGE, _LAST_BOT_MESSAGE, _ensure_main_keyboard
+from handlers.start import _PROTECTED_PAYMENT_MESSAGE, _LAST_BOT_MESSAGE
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +83,6 @@ async def process_payment(callback: CallbackQuery):
     # Сообщение с инвойсом не удаляем при переключении на Main menu / choose a subscription / BONUS
     _PROTECTED_PAYMENT_MESSAGE[chat_id] = sent.message_id
     _LAST_BOT_MESSAGE[chat_id] = sent.message_id
-    await _ensure_main_keyboard(callback.bot, chat_id)
 
     await callback.answer()
 
