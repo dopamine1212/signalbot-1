@@ -168,24 +168,24 @@ async def cmd_admin(message: Message):
     if not AdminService.is_admin(message.from_user.id):
         return
     admin_commands = """
-👑 *Administrator Commands:*
+👑 <b>Administrator Commands:</b>
 
-📊 *Statistics:*
-`/stats` - Bot statistics (users, payments)
+📊 <b>Statistics:</b>
+<code>/stats</code> - Bot statistics (users, payments)
 
-👥 *Admin Management:*
-`/admin_list` - List all admins
-`/admin_add <user_id>` - Add admin
-`/admin_remove <user_id>` - Remove admin
+👥 <b>Admin Management:</b>
+<code>/admin_list</code> - List all admins
+<code>/admin_add &lt;user_id&gt;</code> - Add admin
+<code>/admin_remove &lt;user_id&gt;</code> - Remove admin
 
-📢 *Notifications:*
-`/send_message` - Send custom message to all users
-`/send_notification` - Send prepared template to all users
-`/send_notification_now` - Send prepared template to all users now
+📢 <b>Notifications:</b>
+<code>/send_message</code> - Send custom message to all users
+<code>/send_notification</code> - Send prepared template to all users
+<code>/send_notification_now</code> - Send prepared template to all users now
 
 Send /cancel to cancel any operation.
 """
-    await message.answer(admin_commands)
+    await message.answer(admin_commands, parse_mode="HTML")
 
 
 @router.message(Command("send_notification"))
