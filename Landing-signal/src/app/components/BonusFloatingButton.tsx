@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 export function BonusFloatingButton() {
   return (
     <motion.a
-      href="https://t.me/GPTBonus_bot"
+      href="https://t.me/TomSawyerHub_bot"
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-6 right-6 z-50 inline-flex items-center gap-2 rounded-full border border-sky-400/60 bg-sky-600/90 px-4 py-3 text-white shadow-xl shadow-sky-500/40 backdrop-blur-sm"

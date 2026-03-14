@@ -57,7 +57,7 @@ export function BonusSection() {
               </div>
 
               <motion.a
-                href="https://t.me/futures_signalfast_bot"
+                href="https://t.me/TomSawyerScanner_bot"
                 target="_blank"
                 rel="noopener noreferrer"
                 whileHover={{ scale: 1.02 }}

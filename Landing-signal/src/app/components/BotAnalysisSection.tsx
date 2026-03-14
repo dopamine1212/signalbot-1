@@ -9,7 +9,7 @@ import {
   CarouselPrevious,
 } from '@/app/components/ui/carousel';
 
-const BOT_LINK = 'https://t.me/futures_signalfast_bot';
+const BOT_LINK = 'https://t.me/TomSawyerScanner_bot';
 
 const STEPS = [
   {

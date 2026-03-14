@@ -1,7 +1,7 @@
 import { ReactNode, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 
-const BOT_LINK = 'https://t.me/futures_signalfast_bot';
+const BOT_LINK = 'https://t.me/TomSawyerScanner_bot';
 
 interface MagneticButtonProps {
   children: ReactNode;

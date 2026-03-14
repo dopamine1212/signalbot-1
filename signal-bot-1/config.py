@@ -34,8 +34,8 @@ class Settings:
     PRODUCT_CHANNEL: str = os.getenv("PRODUCT_CHANNEL", "")
     # 👨 support (username без @)
     OPERATOR_USERNAME: str = os.getenv("OPERATOR_USERNAME", "ecoTomSawyer")
-    # Ссылка на второго бота (сигналы) — для кнопки Trading cabinet (@signalpriv_bot)
-    SIGNAL_BOT_LINK: str = os.getenv("SIGNAL_BOT_LINK", "https://t.me/signalpriv_bot").strip()
+    # Ссылка на второго бота (сигналы VIP) — для кнопки Trading cabinet (@TomSawyerVIP_bot)
+    SIGNAL_BOT_LINK: str = os.getenv("SIGNAL_BOT_LINK", "https://t.me/TomSawyerVIP_bot").strip()
     # Обязательный канал для подписки (без @) — https://t.me/SaawyerCrypto
     REQUIRED_CHANNEL: str = os.getenv("REQUIRED_CHANNEL", "SaawyerCrypto").strip().lstrip("@")
 

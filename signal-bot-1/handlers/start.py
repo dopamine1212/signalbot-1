@@ -61,7 +61,7 @@ def get_main_keyboard() -> ReplyKeyboardMarkup:
 
 def get_main_menu_links_keyboard() -> InlineKeyboardMarkup:
     """Инлайн-кнопки под сообщением «Главное меню»: по 2 кнопки в ряд"""
-    signal_link = (settings.SIGNAL_BOT_LINK or "https://t.me/signalpriv_bot").strip()
+    signal_link = (settings.SIGNAL_BOT_LINK or "https://t.me/TomSawyerVIP_bot").strip()
     if signal_link.startswith("@"):
         signal_link = "https://t.me/" + signal_link.lstrip("@")
     elif not signal_link.startswith("http"):
@@ -99,7 +99,7 @@ def _normalize_tg_link(raw: str) -> str:
 
 def get_ecosystem_keyboard() -> InlineKeyboardMarkup:
     """Клавиатура экосистемы: пока 1 торговый бот + назад в меню."""
-    trading_bot_link = _normalize_tg_link(settings.SIGNAL_BOT_LINK or "https://t.me/signalpriv_bot")
+    trading_bot_link = _normalize_tg_link(settings.SIGNAL_BOT_LINK or "https://t.me/TomSawyerVIP_bot")
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="Trading bot", url=trading_bot_link, style="danger", icon_custom_emoji_id="5300964257242829093")],
         [InlineKeyboardButton(text="Back to main menu", callback_data="back_main_menu", style="danger", icon_custom_emoji_id="5465368548702446780")],
@@ -236,7 +236,7 @@ async def buy_subscription(message: Message):
     await _ensure_main_keyboard(message.bot, chat_id)
 
 
-GPT_BONUS_BOT_LINK = "https://t.me/GPTBonus_bot"
+GPT_BONUS_BOT_LINK = "https://t.me/TomSawyerHub_bot"
 
 
 @router.message(lambda message: message.text == "BONUS SCANNER")

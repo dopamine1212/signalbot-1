@@ -13,8 +13,7 @@ logger = logging.getLogger(__name__)
 
 router = Router()
 
-# Кнопка «Go to main menu» всегда ведёт на этого бота (не на signalcryptobot)
-MAIN_MENU_BOT_URL = "https://t.me/futures_signalfast_bot"
+# Кнопка «Go to main menu» ведёт на Бот 1 (@TomSawyerScanner_bot) — из config.MAIN_BOT_LINK
 
 
 def is_user_premium(telegram_id: int) -> bool:
@@ -65,7 +64,7 @@ async def cmd_start(message: Message):
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
                 [InlineKeyboardButton(icon_custom_emoji_id="5465368548702446780",text="Check subscription", style="primary", callback_data="check_subscription")],
-                [InlineKeyboardButton(icon_custom_emoji_id="5465226866321268133",text="Go to main menu", url=MAIN_MENU_BOT_URL, style="primary")],
+                [InlineKeyboardButton(icon_custom_emoji_id="5465226866321268133",text="Go to main menu", url=settings.MAIN_BOT_LINK, style="primary")],
             ]
         )
 
