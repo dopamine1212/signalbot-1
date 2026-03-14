@@ -8,7 +8,7 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKe
 from aiogram.filters import Command
 from database import get_db, PaymentStatus
 from services import UserService, CryptoPaymentService
-from handlers.start import _PROTECTED_PAYMENT_MESSAGE
+from handlers.start import _PROTECTED_PAYMENT_MESSAGE, _LAST_BOT_MESSAGE
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +58,12 @@ async def process_payment(callback: CallbackQuery):
         await callback.answer()
         return
     
+    # Удаляем сообщение с выбором тарифа ($24 / $100 / $200), чтобы не копилось в чате
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
+    
     # НЕ записываем в БД сразу - только после успешной оплаты
     # Сначала показываем пользователю ссылку для оплаты
     
@@ -74,8 +80,10 @@ async def process_payment(callback: CallbackQuery):
     ])
     sent = await callback.message.answer(text, reply_markup=keyboard, parse_mode="HTML")
     # Сообщение с инвойсом не удаляем при переключении на Main menu / choose a subscription / BONUS
-    _PROTECTED_PAYMENT_MESSAGE[callback.message.chat.id] = sent.message_id
-    
+    chat_id = callback.message.chat.id
+    _PROTECTED_PAYMENT_MESSAGE[chat_id] = sent.message_id
+    _LAST_BOT_MESSAGE[chat_id] = sent.message_id
+
     await callback.answer()
 
 

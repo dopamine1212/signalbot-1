@@ -136,7 +136,8 @@ async def cmd_start(message: Message):
     welcome_message_4 = (f"Trading with TomSawyer is a journey you go through together with the rest of the community\n\n"
     "When you make money - we make money too\n\n")
 
-    await message.answer(welcome_message_4, parse_mode="HTML", reply_markup=get_main_keyboard())
+    sent = await message.answer(welcome_message_4, parse_mode="HTML", reply_markup=get_main_keyboard())
+    _LAST_BOT_MESSAGE[message.chat.id] = sent.message_id
 
 
 

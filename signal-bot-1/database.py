@@ -100,6 +100,14 @@ if USE_SUPABASE:
         def close(self):
             self._conn.close()
 
+    def _set_statement_timeout(conn, seconds=60):
+        """Увеличивает таймаут запросов (Supabase по умолчанию обрывает через 3–8 сек)."""
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SET statement_timeout = %s", (f"{seconds}s",))
+        except Exception:
+            pass
+
     def get_db():
         """Возвращает живое подключение; при закрытом/мёртвом соединении создаёт новое."""
         if hasattr(local, "connection"):
@@ -110,6 +118,7 @@ if USE_SUPABASE:
                 cur = c.cursor()
                 cur.execute("SELECT 1")
                 cur.close()
+                _set_statement_timeout(c)
                 return local.connection
             except Exception:
                 try:
@@ -117,13 +126,7 @@ if USE_SUPABASE:
                 except Exception:
                     pass
         conn = psycopg2.connect(settings.DATABASE_URL, connect_timeout=15)
-        # Supabase/PostgreSQL по умолчанию обрывает запрос по statement timeout (3–8 сек).
-        # Увеличиваем до 30 сек, чтобы запросы не падали при медленной сети или холодном старте.
-        try:
-            with conn.cursor() as cur:
-                cur.execute("SET statement_timeout = '30s'")
-        except Exception:
-            pass
+        _set_statement_timeout(conn, 60)
         local.connection = _PGConnection(conn)
         return local.connection
 
