@@ -21,24 +21,25 @@ def _is_protected_payment_message(chat_id: int, message_id: int) -> bool:
 
 
 async def _delete_previous_bot_message(chat_id: int, bot) -> None:
-    """Удаляет последнее сообщение бота в чате (кроме инвойса), чтобы в чате не копился мусор."""
+    """Удаляет последнее контентное сообщение бота (кроме инвойса). Сообщение с reply-клавиатурой не удаляем — кнопки TRADING BOT / choose a subscription / BONUS SCANNER должны всегда оставаться."""
     last_id = _LAST_BOT_MESSAGE.get(chat_id)
     if last_id and not _is_protected_payment_message(chat_id, last_id):
         try:
             await bot.delete_message(chat_id=chat_id, message_id=last_id)
         except Exception:
             pass
-    kbd_id = _LAST_KEYBOARD_MESSAGE.pop(chat_id, None)
-    if kbd_id:
-        try:
-            await bot.delete_message(chat_id=chat_id, message_id=kbd_id)
-        except Exception:
-            pass
+    # Сообщение с reply_markup=get_main_keyboard() не удаляем — reply-кнопки должны никогда не пропадать
 
 
 async def _ensure_main_keyboard(bot, chat_id: int) -> None:
-    """Отправляет сообщение с главным меню под строкой ввода, чтобы клавиатура не пропадала."""
+    """Отправляет сообщение с reply-клавиатурой (TRADING BOT / choose a subscription / BONUS SCANNER). Предыдущее такое сообщение удаляем, чтобы в чате было только одно — кнопки под строкой ввода всегда на месте."""
     try:
+        old_kbd_id = _LAST_KEYBOARD_MESSAGE.pop(chat_id, None)
+        if old_kbd_id:
+            try:
+                await bot.delete_message(chat_id=chat_id, message_id=old_kbd_id)
+            except Exception:
+                pass
         sent = await bot.send_message(chat_id, "\u200b", reply_markup=get_main_keyboard())
         _LAST_KEYBOARD_MESSAGE[chat_id] = sent.message_id
     except Exception:
@@ -46,7 +47,7 @@ async def _ensure_main_keyboard(bot, chat_id: int) -> None:
 
 
 def get_main_keyboard() -> ReplyKeyboardMarkup:
-    """Клавиатура под строкой ввода: Главное меню и подписка"""
+    """Клавиатура под строкой ввода: всегда видна, не пропадает после нажатия."""
     keyboard = ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text="TRADING BOT",icon_custom_emoji_id="5877541407454924896",style='primary')],
@@ -54,6 +55,7 @@ def get_main_keyboard() -> ReplyKeyboardMarkup:
             [KeyboardButton(text="BONUS SCANNER",icon_custom_emoji_id="5390823932376915757",style='primary')],
         ],
         resize_keyboard=True,
+        is_persistent=True,
         input_field_placeholder="Choose an action..."
     )
     return keyboard
