@@ -116,9 +116,15 @@ if USE_SUPABASE:
                     del local.connection
                 except Exception:
                     pass
-        local.connection = _PGConnection(
-            psycopg2.connect(settings.DATABASE_URL, connect_timeout=15)
-        )
+        conn = psycopg2.connect(settings.DATABASE_URL, connect_timeout=15)
+        # Supabase/PostgreSQL по умолчанию обрывает запрос по statement timeout (3–8 сек).
+        # Увеличиваем до 30 сек, чтобы запросы не падали при медленной сети или холодном старте.
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SET statement_timeout = '30s'")
+        except Exception:
+            pass
+        local.connection = _PGConnection(conn)
         return local.connection
 
     def init_db():

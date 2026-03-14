@@ -63,13 +63,13 @@ async def process_payment(callback: CallbackQuery):
     
     # Отправляем сообщение с инструкцией и ссылкой (HTML)
     text = (
-        f"<tg-emoji emoji-id=\"5224257782013769471\">💳</tg-emoji> <b>Payment for {amount} USD created!</b>\n\n"
-        f"<tg-emoji emoji-id=\"5348289410955754971\">⏰</tg-emoji> <b>Payment time: 5 minutes</b>\n\n"
+        f"💳 Payment for {amount} USD created!\n\n"
+        f"<tg-emoji emoji-id=\"5258113901106580375\">⏰</tg-emoji> <b>Payment time: 5 minutes</b>\n\n"
         "Click the button below to pay:\n\n"
         f"<b>Invoice ID:</b> <code>{html.escape(str(invoice_id))}</code>"
     )
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(icon_custom_emoji_id="5337082660164475701", text="Pay via Crypto Bot", style="success", url=bot_invoice_url),],
+        [InlineKeyboardButton(icon_custom_emoji_id="5337082660164475701", text="Pay via Crypto bot", style="primary", url=bot_invoice_url),],
         [InlineKeyboardButton(icon_custom_emoji_id="5465368548702446780", text="Check status", style="primary", callback_data=f"check_invoice_{invoice_id}")]
     ])
     sent = await callback.message.answer(text, reply_markup=keyboard, parse_mode="HTML")

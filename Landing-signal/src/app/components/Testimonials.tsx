@@ -32,7 +32,7 @@ export function Testimonials() {
   ];
 
   return (
-    <section className="py-14 md:py-16 bg-black overflow-x-hidden">
+    <section className="pt-14 md:pt-16 pb-10 md:pb-12 bg-black overflow-x-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full max-w-[100vw] box-border">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -113,7 +113,7 @@ export function Testimonials() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="mt-10"
+          className="mt-6"
         >
           <h3 className="text-xl md:text-2xl font-bold text-white text-center mb-6">
             Start with us for stable results
@@ -122,8 +122,8 @@ export function Testimonials() {
             <Carousel opts={{ align: 'start', loop: true }} className="w-full">
               <CarouselContent className="-ml-4">
                 {['/images/trade-1.png', '/images/trade-2.png', '/images/trade-3.png', '/images/trade-4.png', '/images/trade-5.png'].map((src, index) => (
-                  <CarouselItem key={index} className="pl-4 basis-full sm:basis-2/3 md:basis-1/2 lg:basis-1/3">
-                    <div className="rounded-xl border border-zinc-800 bg-zinc-950 overflow-hidden">
+                  <CarouselItem key={index} className="pl-4 basis-full sm:basis-3/4 md:basis-1/2 lg:basis-2/5">
+                    <div className="rounded-2xl border border-zinc-800 bg-zinc-950 overflow-hidden shadow-xl shadow-black/60 max-w-md mx-auto">
                       <img src={src} alt={`Trade result ${index + 1}`} className="w-full h-auto object-contain" />
                     </div>
                   </CarouselItem>

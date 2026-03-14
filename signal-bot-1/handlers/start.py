@@ -34,7 +34,7 @@ def get_main_keyboard() -> ReplyKeyboardMarkup:
     """Клавиатура под строкой ввода: Главное меню и подписка"""
     keyboard = ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="Main menu",icon_custom_emoji_id="5197269100878907942",style='primary')],
+            [KeyboardButton(text="TRADING BOT",icon_custom_emoji_id="5877541407454924896",style='primary')],
             [KeyboardButton(text="choose a subscription",icon_custom_emoji_id="5372980108493596586",style='primary')],
             [KeyboardButton(text="BONUS SCANNER",icon_custom_emoji_id="5390823932376915757",style='primary')],
         ],
@@ -140,7 +140,7 @@ async def cmd_start(message: Message):
 
 
 
-@router.message(lambda message: message.text == "Main menu")
+@router.message(lambda message: message.text == "TRADING BOT")
 async def main_menu(message: Message):
     """Главное меню: текст и инлайн-кнопки со ссылками (Trading cabinet, Why us, Reviews, Support)"""
     chat_id = message.chat.id
@@ -198,8 +198,8 @@ async def buy_subscription(message: Message):
     user = UserService.get_user_by_telegram_id(message.from_user.id)
     balance = float(user["balance"]) if user else 0.0
     text = (
-        f"<tg-emoji emoji-id=\"5429651785352501917\">📈</tg-emoji><b> Choose a subscription</b>\n\n"
-        f"<tg-emoji emoji-id=\"5224257782013769471\">💰</tg-emoji> Your balance: {balance:.2f} USD\n\n"
+        f"📈 Choose a subscription\n\n"
+        f"<tg-emoji emoji-id=\"5240428351063081133\">💰</tg-emoji> Your balance: {balance:.2f} USD\n\n"
         f"<b>Select a plan:</b>"
     )
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
