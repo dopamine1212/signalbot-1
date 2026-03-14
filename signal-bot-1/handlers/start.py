@@ -68,7 +68,7 @@ def get_main_menu_links_keyboard() -> InlineKeyboardMarkup:
         signal_link = "https://t.me/" + signal_link.lstrip("@")
     elif not signal_link.startswith("http"):
         signal_link = "https://t.me/" + signal_link.lstrip("@")
-    landing_link = (settings.LANDING_URL or "http://89.169.2.206:4173/").strip()
+    landing_link = (settings.LANDING_URL or "http://64.188.61.44:4173/").strip()
     reviews_link = (settings.REVIEWS_CHANNEL or "https://t.me/futuresreviewsTom").strip()
     if not reviews_link.startswith("http"):
         reviews_link = "https://t.me/" + reviews_link.lstrip("@")
