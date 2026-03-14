@@ -11,6 +11,7 @@ from config import settings
 router = Router()
 # Один последний ответ бота — при любом новом действии удаляем его, чтобы в чате не копился мусор
 _LAST_BOT_MESSAGE: dict[int, int] = {}  # chat_id -> message_id
+_LAST_KEYBOARD_MESSAGE: dict[int, int] = {}  # служебное сообщение с главным меню под строкой ввода
 # Сообщение с инвойсом не удаляем — пользователь должен видеть кнопку оплаты
 _PROTECTED_PAYMENT_MESSAGE: dict[int, int] = {}  # chat_id -> message_id
 
@@ -20,12 +21,26 @@ def _is_protected_payment_message(chat_id: int, message_id: int) -> bool:
 
 
 async def _delete_previous_bot_message(chat_id: int, bot) -> None:
-    """Удаляет последнее сообщение бота в чате (кроме инвойса), чтобы не захламлять чат."""
+    """Удаляет последнее сообщение бота в чате (кроме инвойса), чтобы в чате не копился мусор."""
     last_id = _LAST_BOT_MESSAGE.get(chat_id)
-    if not last_id or _is_protected_payment_message(chat_id, last_id):
-        return
+    if last_id and not _is_protected_payment_message(chat_id, last_id):
+        try:
+            await bot.delete_message(chat_id=chat_id, message_id=last_id)
+        except Exception:
+            pass
+    kbd_id = _LAST_KEYBOARD_MESSAGE.pop(chat_id, None)
+    if kbd_id:
+        try:
+            await bot.delete_message(chat_id=chat_id, message_id=kbd_id)
+        except Exception:
+            pass
+
+
+async def _ensure_main_keyboard(bot, chat_id: int) -> None:
+    """Отправляет сообщение с главным меню под строкой ввода, чтобы клавиатура не пропадала."""
     try:
-        await bot.delete_message(chat_id=chat_id, message_id=last_id)
+        sent = await bot.send_message(chat_id, "\u200b", reply_markup=get_main_keyboard())
+        _LAST_KEYBOARD_MESSAGE[chat_id] = sent.message_id
     except Exception:
         pass
 
@@ -157,6 +172,7 @@ async def main_menu(message: Message):
         parse_mode="HTML",
     )
     _LAST_BOT_MESSAGE[chat_id] = sent.message_id
+    await _ensure_main_keyboard(message.bot, chat_id)
 
 
 @router.callback_query(F.data == "eco_system")
@@ -173,6 +189,7 @@ async def cb_eco_system(callback: CallbackQuery):
     )
     sent = await callback.message.answer(text, reply_markup=get_ecosystem_keyboard(), parse_mode="HTML")
     _LAST_BOT_MESSAGE[chat_id] = sent.message_id
+    await _ensure_main_keyboard(callback.message.bot, chat_id)
 
 
 @router.callback_query(F.data == "back_main_menu")
@@ -185,6 +202,7 @@ async def cb_back_main_menu(callback: CallbackQuery):
         pass
     sent = await callback.message.answer(MAIN_MENU_TEXT, reply_markup=get_main_menu_links_keyboard(), parse_mode="HTML")
     _LAST_BOT_MESSAGE[chat_id] = sent.message_id
+    await _ensure_main_keyboard(callback.message.bot, chat_id)
 
 
 @router.message(lambda message: message.text == "choose a subscription")
@@ -215,6 +233,7 @@ async def buy_subscription(message: Message):
         parse_mode="HTML",
     )
     _LAST_BOT_MESSAGE[chat_id] = sent.message_id
+    await _ensure_main_keyboard(message.bot, chat_id)
 
 
 GPT_BONUS_BOT_LINK = "https://t.me/GPTBonus_bot"
@@ -238,4 +257,5 @@ async def bonus(message: Message):
     ])
     sent = await message.bot.send_message(chat_id=chat_id, text=text, reply_markup=keyboard, parse_mode="HTML")
     _LAST_BOT_MESSAGE[chat_id] = sent.message_id
+    await _ensure_main_keyboard(message.bot, chat_id)
 

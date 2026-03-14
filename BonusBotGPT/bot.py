@@ -42,7 +42,7 @@ MSG_START = """This <b><tg-emoji emoji-id=\"5474638166163988906\">🤖</tg-emoji
 MSG_NOT_IMAGE = "<b><tg-emoji emoji-id=\"5017122105011995219\">❌</tg-emoji></b> Please send a screenshot of a trading chart"
 
 # 3. Получение изображения — сразу после отправки фото/файла
-MSG_CHART_RECEIVED = """<b><tg-emoji emoji-id=\"5328194414323980905\">✅</tg-emoji></b> Chart received.
+MSG_CHART_RECEIVED = """<b><tg-emoji emoji-id=\"5328194414323980905\">✅</tg-emoji></b> Chart received
 
 <b><tg-emoji emoji-id=\"5874960879434338403\">🔎</tg-emoji></b> Analyzing the chart now…
 
@@ -55,7 +55,7 @@ Please send a clearer screenshot with:
 – visible candles (zoom in)"""
 
 # 7. После ответа — можно отправить ещё график
-MSG_ANOTHER_CHART = "<b><tg-emoji emoji-id=\"5375309569905938163\">📸</tg-emoji></b> You can send another chart whenever you're ready."
+MSG_ANOTHER_CHART = "<b><tg-emoji emoji-id=\"5375309569905938163\">📸</tg-emoji></b> You can send another chart whenever you're ready"
 
 # 8. Ошибка GPT API или другая ошибка
 MSG_API_ERROR = """<b><tg-emoji emoji-id=\"5017122105011995219\">❌</tg-emoji></b> Something went wrong while analyzing the chart.
