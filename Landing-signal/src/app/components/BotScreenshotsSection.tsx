@@ -8,10 +8,11 @@ import {
   CarouselPrevious,
 } from '@/app/components/ui/carousel';
 
-const FUTURES_BOT_LINK = 'https://t.me/TomSawyerScanner_bot';
+import { BOT_LINKS } from '@/app/constants';
+const FUTURES_BOT_LINK = BOT_LINKS.HUB;
 const CHANNEL_LINK = 'https://t.me/SaawyerCrypto';
 const PROOF_LINK = 'https://t.me/futuresreviewsTom';
-const BONUS_BOT_LINK = 'https://t.me/TomSawyerHub_bot';
+const BONUS_BOT_LINK = BOT_LINKS.SCANNER;
 
 const ECOSYSTEM_ITEMS = [
   {

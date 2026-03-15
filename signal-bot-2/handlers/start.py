@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 router = Router()
 
-# Кнопка «Go to main menu» ведёт на Бот 1 (@TomSawyerScanner_bot) — из config.MAIN_BOT_LINK
+# Кнопка «Go to main menu» ведёт на основной бот @TomSawyerHub_bot — из config.MAIN_BOT_LINK
 
 
 def is_user_premium(telegram_id: int) -> bool:

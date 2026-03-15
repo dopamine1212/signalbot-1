@@ -1,5 +1,6 @@
 import { Gift, Star, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
+import { BOT_LINKS } from '@/app/constants';
 
 export function BonusSection() {
   return (
@@ -57,7 +58,7 @@ export function BonusSection() {
               </div>
 
               <motion.a
-                href="https://t.me/TomSawyerScanner_bot"
+                href={BOT_LINKS.SCANNER}
                 target="_blank"
                 rel="noopener noreferrer"
                 whileHover={{ scale: 1.02 }}

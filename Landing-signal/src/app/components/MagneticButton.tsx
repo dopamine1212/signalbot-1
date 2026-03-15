@@ -1,7 +1,9 @@
 import { ReactNode, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 
-const BOT_LINK = 'https://t.me/TomSawyerScanner_bot';
+import { BOT_LINKS } from '@/app/constants';
+/** Главная CTA (Start trading) — основной бот @TomSawyerHub_bot */
+const BOT_LINK = BOT_LINKS.HUB;
 
 interface MagneticButtonProps {
   children: ReactNode;
@@ -36,7 +38,7 @@ export function MagneticButton({ children, className = '', onClick, href }: Magn
     transition: { type: 'spring' as const, stiffness: 150, damping: 15, mass: 0.1 },
   };
 
-  if (href === 'bot' || href === BOT_LINK) {
+  if (href === 'bot' || href === BOT_LINK || href === BOT_LINKS.HUB) {
     return (
       <motion.a
         {...motionProps}

@@ -83,7 +83,6 @@ def get_subscription_status(telegram_id: int) -> tuple[bool, bool]:
     finally:
         conn.close()
 
-
 def init_db():
     """Проверка подключения к БД (таблицы создаёт бот 1)."""
     conn = _connect()

@@ -1,4 +1,5 @@
 import { Twitter, Send, MessageCircle, Mail } from 'lucide-react';
+import { BOT_LINKS } from '@/app/constants';
 
 export function Footer() {
   return (
@@ -21,7 +22,7 @@ export function Footer() {
                 <Twitter className="w-5 h-5 text-purple-400" />
               </a>
               <a
-                href="https://t.me/TomSawyerScanner_bot"
+                href={BOT_LINKS.HUB}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-purple-950/50 border border-purple-500/30 rounded-lg flex items-center justify-center hover:bg-purple-900/50 hover:border-purple-400/50 transition-all"
