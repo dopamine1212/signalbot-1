@@ -83,10 +83,10 @@ async def cb_check_subscription(callback: CallbackQuery):
         return
 
     premium = is_user_premium(user_id)
-    text = "✅ Subscription is active." if premium else "❌ Subscription is not active. Get a subscription in the main bot."
     try:
-        await callback.answer(text, show_alert=True)
+        if premium:
+            await callback.answer("✅ Subscription is active.", show_alert=True)
+        else:
+            await callback.answer("❌ Subscription is not active. Get a subscription in the main bot.", show_alert=True)
     except TelegramBadRequest:
-        # Query too old or invalid — answer expired, do not re-raise
         logger.debug("callback.answer failed (query expired or invalid)")
-        pass
