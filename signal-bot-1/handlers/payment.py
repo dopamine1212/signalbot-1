@@ -9,7 +9,7 @@ from aiogram.filters import Command
 from aiogram.exceptions import TelegramBadRequest
 from database import get_db, PaymentStatus
 from services import UserService, CryptoPaymentService
-from handlers.start import _PROTECTED_PAYMENT_MESSAGE, _LAST_BOT_MESSAGE
+from handlers.start import _LAST_BOT_MESSAGE
 
 logger = logging.getLogger(__name__)
 
@@ -81,8 +81,6 @@ async def process_payment(callback: CallbackQuery):
         [InlineKeyboardButton(icon_custom_emoji_id="5465368548702446780", text="Check status", style="primary", callback_data=f"check_invoice_{invoice_id}")]
     ])
     sent = await callback.message.answer(text, reply_markup=keyboard, parse_mode="HTML")
-    # Сообщение с инвойсом не удаляем при переключении на Main menu / choose a subscription / BONUS
-    _PROTECTED_PAYMENT_MESSAGE[chat_id] = sent.message_id
     _LAST_BOT_MESSAGE[chat_id] = sent.message_id
 
     await callback.answer()

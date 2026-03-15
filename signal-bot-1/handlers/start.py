@@ -130,10 +130,9 @@ async def cmd_start(message: Message):
     'As a result, you get instant, up-to-date signals with a high probability of playing out'
 )
 
-    sent3 = await message.answer(welcome_message_3, parse_mode="HTML")
+    await message.answer(welcome_message_3, parse_mode="HTML")
     await asyncio.sleep(1)
-    # Удаляем только третье сообщение при следующем действии; четвертое (с клавиатурой) не удаляем никогда
-    _LAST_BOT_MESSAGE[message.chat.id] = sent3.message_id
+    # Приветственные сообщения (1–4) не записываем в _LAST_BOT_MESSAGE — они остаются в чате после /start
 
     welcome_message_4 = (f"Trading with TomSawyer is a journey you go through together with the rest of the community\n\n"
     "When you make money - we make money too\n\n")
@@ -217,7 +216,7 @@ async def buy_subscription(message: Message):
     _LAST_BOT_MESSAGE[chat_id] = sent.message_id
 
 
-GPT_BONUS_BOT_LINK = "https://t.me/TomSawyerHub_bot"
+GPT_BONUS_BOT_LINK = "https://t.me/TomSawyerScanner_bot"
 
 
 @router.message(lambda message: message.text == "BONUS SCANNER")

@@ -15,7 +15,7 @@ class Settings:
     ADMIN_IDS: list[int] = [int(x) for x in os.getenv("ADMIN_IDS", "").split(",") if x]
     DATABASE_URL: str = os.getenv("DATABASE_URL", "")
     # Main menu link — Бот 1 @TomSawyerScanner_bot (button "Go to main menu")
-    MAIN_BOT_LINK: str = os.getenv("MAIN_BOT_LINK", "https://t.me/TomSawyerScanner_bot").strip() or "https://t.me/TomSawyerScanner_bot"
+    MAIN_BOT_LINK: str = os.getenv("MAIN_BOT_LINK", "https://t.me/TomSawyerHub_bot").strip()
     # Текст уведомления по команде /send_notification (админ). Редактируйте под себя.
     NOTIFICATION_TEMPLATE: str = os.getenv(
         "NOTIFICATION_TEMPLATE",
