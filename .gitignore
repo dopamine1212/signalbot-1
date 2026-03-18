@@ -9,7 +9,7 @@ venv/
 ENV/
 build/
 develop-eggs/
-dist/
+/dist/
 downloads/
 eggs/
 .eggs/
@@ -50,6 +50,5 @@ Thumbs.db
 
 Landing-signal/node_modules/
 
-# Разрешаем коммитить готовую сборку лендинга (на сервере nginx смотрит в /var/www/lending)
-!Landing-signal/dist/
-!Landing-signal/dist/**
+# Примечание: dist на корневом уровне игнорируется, а сборка лендинга в папке Landing-signal
+# должна попадать в git, чтобы сервер подтягивал обновления по git pull.
