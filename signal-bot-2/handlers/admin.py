@@ -36,9 +36,10 @@ def build_short_signal(
     pair: str,
     price_low: str, price_high: str, leverage: str,
     target1: str, target2: str, target3: str, target4: str, target5: str,
-    stop_loss: str,
+    stop_loss: str = "",
 ) -> str:
     header = f"#SIGNAL ({_h(pair)})\n\n"
+    stop_loss_line = f"\n\n❗️ STOP LOSS: ${_h(stop_loss)}" if stop_loss and stop_loss.strip() else ""
     return (
         header
         + f"<tg-emoji emoji-id=\"5283224689395640696\">📉</tg-emoji> Open <b>SHORT</b> <tg-emoji emoji-id=\"5472265471610856247\">⛔️</tg-emoji> at price between\n"
@@ -49,7 +50,7 @@ def build_short_signal(
         f"3️⃣ Close the order at the price ${_h(target3)}\n"
         f"4️⃣ Close the order at the price ${_h(target4)}\n"
         f"5️⃣ Close the order at the price ${_h(target5)}\n\n"
-        f"❗️ STOP LOSS: ${_h(stop_loss)}"
+        + stop_loss_line
     )
 
 
@@ -57,9 +58,10 @@ def build_long_signal(
     pair: str,
     price_low: str, price_high: str, leverage: str,
     target1: str, target2: str, target3: str, target4: str, target5: str,
-    stop_loss: str,
+    stop_loss: str = "",
 ) -> str:
     header = f"#SIGNAL ({_h(pair)})\n\n"
+    stop_loss_line = f"\n\n❗️ STOP LOSS: ${_h(stop_loss)}" if stop_loss and stop_loss.strip() else ""
     return (
         header
         + f"<tg-emoji emoji-id=\"5298952911173205130\">📈</tg-emoji> Open <b>LONG</b> <tg-emoji emoji-id=\"5449660186853648911\">🔠</tg-emoji> at price between\n"
@@ -70,7 +72,7 @@ def build_long_signal(
         f"3️⃣ Close the order at the price ${_h(target3)}\n"
         f"4️⃣ Close the order at the price ${_h(target4)}\n"
         f"5️⃣ Close the order at the price ${_h(target5)}\n\n"
-        f"❗️ STOP LOSS: ${_h(stop_loss)}"
+        + stop_loss_line
     )
 
 
@@ -439,7 +441,7 @@ async def process_signal_type(callback: CallbackQuery, state: FSMContext):
         "7. Цель 3\n"
         "8. Цель 4\n"
         "9. Цель 5\n"
-        "10. Стоп-лосс",
+        "10. Стоп-лосс (опционально, можно пропустить)",
         parse_mode="HTML",
     )
 
@@ -452,17 +454,17 @@ async def process_signal_vars(message: Message, state: FSMContext):
         return
     # Ввод с новой строки: каждое значение — отдельная строка
     parts = [line.strip() for line in message.text.strip().splitlines() if line.strip()]
-    if len(parts) != 10:
+    if len(parts) not in (9, 10):
         await message.answer(
-            "⚠️ Нужно 10 строк (каждое значение с новой строки):\n"
-            "пара, цена_мин, цена_макс, плечо, цель1, цель2, цель3, цель4, цель5, стоп_лосс.\n"
+            "⚠️ Нужно 9 или 10 строк (каждое значение с новой строки):\n"
+            "пара, цена_мин, цена_макс, плечо, цель1, цель2, цель3, цель4, цель5, [стоп_лосс].\n"
             "Попробуйте снова."
         )
         return
     (
         pair, price_low, price_high, leverage,
         target1, target2, target3, target4, target5, stop_loss
-    ) = parts
+    ) = parts if len(parts) == 10 else (*parts, "")
     data = await state.get_data()
     signal_type = data.get("signal_type", "short")
     if signal_type == "long":
