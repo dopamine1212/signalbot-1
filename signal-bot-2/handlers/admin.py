@@ -30,6 +30,21 @@ def _h(s: str) -> str:
     return html.escape(str(s))
 
 
+async def _delete_pin_system_notification(chat_id: int, pinned_message_id: int, bot) -> None:
+    """
+    Best-effort удаление системного уведомления о закрепе.
+
+    Telegram API не возвращает message_id сервисного сообщения после pin.
+    На практике оно обычно идёт следующим id, поэтому пробуем удалить несколько ближайших.
+    """
+    for candidate_id in (pinned_message_id + 1, pinned_message_id + 2):
+        try:
+            await bot.delete_message(chat_id=chat_id, message_id=candidate_id)
+            return
+        except Exception:
+            pass
+
+
 # Шаблоны сигналов SHORT/LONG. Переменные задаёт админ. Отправляются с parse_mode=HTML.
 # В начале #SIGNAL (ПАРА). Строка про OKX и % депозита убрана.
 def build_short_signal(
@@ -670,6 +685,11 @@ async def process_final_signal(message: Message, state: FSMContext, photo_ids=No
                         chat_id=user_telegram_id,
                         message_id=msg_to_pin.message_id,
                         disable_notification=True
+                    )
+                    await _delete_pin_system_notification(
+                        chat_id=user_telegram_id,
+                        pinned_message_id=msg_to_pin.message_id,
+                        bot=message.bot,
                     )
                 except Exception as pin_err:
                     logger.warning(f"Could not pin message for user {user_telegram_id}: {pin_err}")

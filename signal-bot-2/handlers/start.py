@@ -26,10 +26,12 @@ def get_welcome_text(premium: bool) -> str:
     """Welcome text with subscription status block (HTML)."""
     if premium:
         return (
-            "<b>Welcome to Tom Sawyer signals bot</b>\n\n"
-            "Access status: <tg-emoji emoji-id=\"5212932275376759608\">✅</tg-emoji> Active\n\n"
-            "You will receive trading signals here with pinned messages.\n\n"
-            "No commands needed — just wait for the updates."
+            "<tg-emoji emoji-id=\"5890911279870119913\">❤️</tg-emoji> TOM SAWYER AI BOT - NOW LIVE\n\n"
+            "The bot is active <tg-emoji emoji-id=\"5278628026416909103\">✅</tg-emoji>\n"
+            "Turn on notifications and get ready for signals <tg-emoji emoji-id=\"5393389505321395092\">🔼</tg-emoji>\n\n"
+            "<blockquote>We provide the entries - you take the profit</blockquote>\n\n"
+            "<tg-emoji emoji-id=\"5471873663219284417\">💰</tg-emoji> <i>After each successful trade</i>, a 50% profit share is required\n"
+            "For sending your share & support - contact us directly @ecoTomSawyer"
         )
     return (
         "<b>Welcome to Tom Sawyer signals bot</b>\n\n"
