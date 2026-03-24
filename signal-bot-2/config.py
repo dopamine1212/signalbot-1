@@ -16,10 +16,10 @@ class Settings:
     DATABASE_URL: str = os.getenv("DATABASE_URL", "")
     # Main menu link — основной бот @TomSawyerHub_bot (кнопка "Go to main menu")
     MAIN_BOT_LINK: str = os.getenv("MAIN_BOT_LINK", "https://t.me/TomSawyerHub_bot").strip()
-    # Текст уведомления по команде /send_notification (админ). Редактируйте под себя.
+    # Шаблон /send_notification: единственная подставляемая переменная — {time} (время от админа).
     NOTIFICATION_TEMPLATE: str = os.getenv(
         "NOTIFICATION_TEMPLATE",
-        """<tg-emoji emoji-id=\"5316615057939897832\">🤖</tg-emoji> Today's signal is at ... GMT
+        """<tg-emoji emoji-id=\"5316615057939897832\">🤖</tg-emoji> Today's signal is at {time} GMT
 
 <tg-emoji emoji-id=\"5265057377165531669\">🚀</tg-emoji> reminders
 

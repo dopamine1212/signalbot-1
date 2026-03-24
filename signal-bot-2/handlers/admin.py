@@ -104,6 +104,10 @@ class BroadcastStates(StatesGroup):
     waiting_for_link = State()
 
 
+class NotificationStates(StatesGroup):
+    waiting_for_time = State()
+
+
 media_groups_storage = {}
 
 
@@ -128,9 +132,8 @@ async def cmd_admin(message: Message):
 📢 *Signals & messages:*
 `/send_signal` - Send signal (1-2 photos + text, Group 1 or 2)
 `/send_message` - Send custom message to all users
-`/send_notification` - Send prepared template to all users
+`/send_notification` - Уведомление о времени сигнала (только премиум; время вводит админ)
 `/summarize` - Подвести итоги по группе
-`/send_notification_now` - Send prepared template to all users now
 
 Send /cancel to cancel any operation.
 """
@@ -225,17 +228,53 @@ async def cb_summarize_group(callback: CallbackQuery):
 
 
 @router.message(Command("send_notification"))
-async def cmd_send_notification(message: Message):
-    """Отправка заготовленного уведомления всем пользователям (текст из config.NOTIFICATION_TEMPLATE)."""
+async def cmd_send_notification(message: Message, state: FSMContext):
+    """Уведомление по шаблону NOTIFICATION_TEMPLATE; подставляется только {time}; получатели — активный премиум."""
     if not AdminService.is_admin(message.from_user.id):
         return
-    text = (settings.NOTIFICATION_TEMPLATE or "").strip()
-    if not text:
+    template = (settings.NOTIFICATION_TEMPLATE or "").strip()
+    if not template:
         await message.answer("❌ NOTIFICATION_TEMPLATE пустой. Заполните в config.py или .env")
         return
+    if "{time}" not in template:
+        await message.answer(
+            "❌ В NOTIFICATION_TEMPLATE должен быть плейсхолдер <code>{time}</code> "
+            "(время подставляется из ответа админа).",
+            parse_mode="HTML",
+        )
+        return
+    await message.answer(
+        "⏰ *Уведомление о сигнале*\n\n"
+        "Отправьте время для строки «Today's signal is at … GMT» — это единственная переменная.\n"
+        "Например: `15:30` или `3:30 PM`\n\n"
+        "Отправьте /cancel для отмены."
+    )
+    await state.set_state(NotificationStates.waiting_for_time)
+
+
+@router.message(StateFilter(NotificationStates.waiting_for_time), F.text)
+async def process_notification_time(message: Message, state: FSMContext):
+    if not AdminService.is_admin(message.from_user.id):
+        return
+    raw = (message.text or "").strip()
+    if raw == "/cancel":
+        await state.clear()
+        await message.answer("❌ Отменено")
+        return
+    if raw.startswith("/"):
+        await message.answer("Сначала введите время или отправьте /cancel")
+        return
+    time_str = raw
+    if not time_str:
+        await message.answer("Пусто. Введите время или /cancel")
+        return
+    template = (settings.NOTIFICATION_TEMPLATE or "").strip()
+    text = template.replace("{time}", _h(time_str))
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT telegram_id FROM users")
+    cursor.execute(
+        "SELECT telegram_id FROM users WHERE is_premium = 1 AND is_active = 1"
+    )
     users = [row[0] for row in cursor.fetchall()]
     sent = 0
     failed = 0
@@ -251,7 +290,10 @@ async def cmd_send_notification(message: Message):
         except Exception as e:
             failed += 1
             logger.debug("Notification to %s: %s", uid, e)
-    await message.answer(f"✅ Notification sent: {sent} delivered, {failed} errors.")
+    await state.clear()
+    await message.answer(
+        f"✅ Уведомление отправлено активным премиум-пользователям: {sent} доставлено, {failed} ошибок."
+    )
 
 
 @router.message(Command("send_message"))
