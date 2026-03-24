@@ -8,6 +8,7 @@ from aiogram.filters import Command
 from aiogram.exceptions import TelegramBadRequest
 from database import get_subscription_status
 from config import settings
+from .admin import _delete_pin_system_notification
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +71,20 @@ async def cmd_start(message: Message):
             ]
         )
 
-    await message.answer(text, reply_markup=keyboard, parse_mode="HTML")
+    sent = await message.answer(text, reply_markup=keyboard, parse_mode="HTML")
+    try:
+        await message.bot.pin_chat_message(
+            chat_id=message.chat.id,
+            message_id=sent.message_id,
+            disable_notification=True,
+        )
+        await _delete_pin_system_notification(
+            chat_id=message.chat.id,
+            pinned_message_id=sent.message_id,
+            bot=message.bot,
+        )
+    except TelegramBadRequest:
+        logger.debug("pin or delete pin notification failed", exc_info=True)
 
 
 @router.callback_query(F.data == "check_subscription")
