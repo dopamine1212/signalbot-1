@@ -43,10 +43,10 @@ def get_welcome_text(premium: bool) -> str:
 
 
 def get_start_keyboard() -> InlineKeyboardMarkup:
-    """«Check subscription» button under the welcome message."""
+    """Keyboard under the welcome message for non-premium users."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(icon_custom_emoji_id="5465368548702446780",text="Check subscription", style="primary", callback_data="check_subscription")]
+            [InlineKeyboardButton(icon_custom_emoji_id="5465226866321268133", text="Go to main menu", url=settings.MAIN_BOT_LINK, style="primary")]
         ]
     )
 
@@ -54,7 +54,7 @@ def get_start_keyboard() -> InlineKeyboardMarkup:
 @router.message(Command("start"), F.text)
 @router.message(Command("start"))
 async def cmd_start(message: Message):
-    """Welcome: subscription status block and check subscription button."""
+    """Welcome: subscription status block."""
     user_id = message.from_user.id if message.from_user else 0
     if not user_id:
         return
@@ -62,14 +62,9 @@ async def cmd_start(message: Message):
     premium = is_user_premium(user_id)
     text = get_welcome_text(premium)
 
-    keyboard = get_start_keyboard()
+    keyboard = None
     if not premium:
-        keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [InlineKeyboardButton(icon_custom_emoji_id="5465368548702446780",text="Check subscription", style="primary", callback_data="check_subscription")],
-                [InlineKeyboardButton(icon_custom_emoji_id="5465226866321268133",text="Go to main menu", url=settings.MAIN_BOT_LINK, style="primary")],
-            ]
-        )
+        keyboard = get_start_keyboard()
 
     sent = await message.answer(text, reply_markup=keyboard, parse_mode="HTML")
     try:

@@ -19,7 +19,7 @@ class Settings:
     # Шаблон /send_notification: единственная подставляемая переменная — {time} (время от админа).
     NOTIFICATION_TEMPLATE: str = os.getenv(
         "NOTIFICATION_TEMPLATE",
-        """<tg-emoji emoji-id=\"5316615057939897832\">🤖</tg-emoji> Today's signal is at {time} GMT
+        """<tg-emoji emoji-id=\"5316615057939897832\">🤖</tg-emoji> Today's signal is at {time} GMT+2
 
 <tg-emoji emoji-id=\"5265057377165531669\">🚀</tg-emoji> reminders
 

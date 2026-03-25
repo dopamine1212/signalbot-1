@@ -245,7 +245,7 @@ async def cmd_send_notification(message: Message, state: FSMContext):
         return
     await message.answer(
         "⏰ *Уведомление о сигнале*\n\n"
-        "Отправьте время для строки «Today's signal is at … GMT» — это единственная переменная.\n"
+        "Отправьте время для строки «Today's signal is at … GMT+2» — это единственная переменная.\n"
         "Например: `15:30` или `3:30 PM`\n\n"
         "Отправьте /cancel для отмены."
     )
