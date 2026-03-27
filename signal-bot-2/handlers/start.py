@@ -31,7 +31,7 @@ def get_welcome_text(premium: bool) -> str:
             "The bot is active <tg-emoji emoji-id=\"5278628026416909103\">✅</tg-emoji>\n"
             "Turn on notifications and get ready for signals <tg-emoji emoji-id=\"5393389505321395092\">🔼</tg-emoji>\n\n"
             "<blockquote>We provide the entries - you take the profit</blockquote>\n\n"
-            "<tg-emoji emoji-id=\"5471873663219284417\">💰</tg-emoji> <i>After each successful trade</i>, a 50% profit share is required\n"
+            "<tg-emoji emoji-id=\"5471873663219284417\">💰</tg-emoji> <i>After each successful trade</i>, a 50% profit share is required\n\n"
             "For sending your share & support - contact us directly @ecoTomSawyer"
         )
     return (
