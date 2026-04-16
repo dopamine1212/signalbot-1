@@ -84,11 +84,23 @@ def get_subscription_status(telegram_id: int) -> tuple[bool, bool]:
         conn.close()
 
 def init_db():
-    """Проверка подключения к БД (таблицы создаёт бот 1)."""
+    """Проверка подключения к БД и наличие таблицы банов."""
     conn = _connect()
     try:
         cur = conn.cursor()
         cur.execute("SELECT 1")
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS banned_users (
+                id BIGSERIAL PRIMARY KEY,
+                telegram_id BIGINT UNIQUE,
+                username TEXT UNIQUE NOT NULL,
+                added_at TIMESTAMPTZ DEFAULT NOW(),
+                added_by BIGINT
+            )
+            """
+        )
+        conn.commit()
         cur.close()
         logger.info("Database connection OK")
     finally:

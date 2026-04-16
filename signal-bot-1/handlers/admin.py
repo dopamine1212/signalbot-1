@@ -8,7 +8,7 @@ from aiogram.filters import Command, StateFilter
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from database import get_db, PaymentStatus
-from services import AdminService, UserService
+from services import AdminService, UserService, BanService
 from config import settings
 
 logger = logging.getLogger(__name__)
@@ -178,6 +178,11 @@ async def cmd_admin(message: Message):
 <code>/admin_add &lt;user_id&gt;</code> - Add admin
 <code>/admin_remove &lt;user_id&gt;</code> - Remove admin
 
+🚫 <b>Bans:</b>
+<code>/ban_user &lt;@username&gt;</code> - Ban user by username
+<code>/unban_user &lt;@username&gt;</code> - Unban user by username
+<code>/ban_list</code> - List banned users
+
 📢 <b>Notifications:</b>
 <code>/send_message</code> - Send custom message to all users
 <code>/send_notification</code> - Send prepared template to all users
@@ -186,6 +191,63 @@ async def cmd_admin(message: Message):
 Send /cancel to cancel any operation.
 """
     await message.answer(admin_commands, parse_mode="HTML")
+
+
+def _extract_username_arg(message: Message) -> str:
+    args = (message.text or "").split(maxsplit=1)
+    if len(args) < 2:
+        return ""
+    return args[1].strip().lstrip("@")
+
+
+@router.message(Command("ban_user"))
+async def cmd_ban_user(message: Message):
+    if not AdminService.is_admin(message.from_user.id):
+        return
+    username = _extract_username_arg(message)
+    if not username:
+        await message.answer("❌ Usage: /ban_user <@username>")
+        return
+    ok, reason = BanService.ban_by_username(username, added_by=message.from_user.id)
+    if ok:
+        await message.answer(f"✅ User @{username.lower()} has been banned.")
+    elif reason == "already_banned":
+        await message.answer(f"⚠️ User @{username.lower()} is already banned.")
+    else:
+        await message.answer("❌ Failed to ban user. Check username.")
+
+
+@router.message(Command("unban_user"))
+async def cmd_unban_user(message: Message):
+    if not AdminService.is_admin(message.from_user.id):
+        return
+    username = _extract_username_arg(message)
+    if not username:
+        await message.answer("❌ Usage: /unban_user <@username>")
+        return
+    if BanService.unban_by_username(username):
+        await message.answer(f"✅ User @{username.lower()} has been unbanned.")
+    else:
+        await message.answer(f"⚠️ User @{username.lower()} is not in ban list.")
+
+
+@router.message(Command("ban_list"))
+async def cmd_ban_list(message: Message):
+    if not AdminService.is_admin(message.from_user.id):
+        return
+    bans = BanService.get_all_bans()
+    if not bans:
+        await message.answer("📋 Ban list is empty.")
+        return
+    lines = ["🚫 Banned users:\n"]
+    for idx, row in enumerate(bans, 1):
+        uname = row.get("username") or "unknown"
+        tg_id = row.get("telegram_id")
+        if tg_id:
+            lines.append(f"{idx}. @{uname} (id: {tg_id})")
+        else:
+            lines.append(f"{idx}. @{uname}")
+    await message.answer("\n".join(lines), parse_mode=None)
 
 
 @router.message(Command("send_notification"))

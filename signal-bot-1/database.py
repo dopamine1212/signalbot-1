@@ -195,6 +195,17 @@ if USE_SUPABASE:
                 added_by BIGINT
             )
         """)
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS banned_users (
+                id BIGSERIAL PRIMARY KEY,
+                telegram_id BIGINT UNIQUE,
+                username TEXT UNIQUE NOT NULL,
+                added_at TIMESTAMPTZ DEFAULT NOW(),
+                added_by BIGINT
+            )
+            """
+        )
         conn.commit()
         cur.close()
         if settings.ADMIN_IDS:
